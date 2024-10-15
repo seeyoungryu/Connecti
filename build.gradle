@@ -36,7 +36,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-// Node.js 관련 설정 추가
+//Node.js 관련 설정 추가
 node {
 	nodeModulesDir = file("$projectDir/front-end")
 	version = '18.3.0'
@@ -56,7 +56,7 @@ task cleanFrontEnd(type: Delete) {
 	delete "$projectDir/front-end/static", "$projectDir/front-end/node_modules"
 }
 
-// 작업 간 종속성 설정
+//작업 간 종속성 설정
 npmBuild.dependsOn npmInstall
 copyFrontEnd.dependsOn npmBuild
 compileJava.dependsOn copyFrontEnd
