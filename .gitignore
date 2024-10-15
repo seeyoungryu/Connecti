@@ -1,0 +1,62 @@
+# IntelliJ IDEA specific
+.idea/
+*.iml
+*.iws
+out/
+target/
+
+# Maven specific
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/
+log/
+
+# Gradle specific
+.gradle/
+build/
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+*.log.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Java specific
+*.jar
+*.war
+*.ear
+*.jmod
+
+# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# Lombok config
+lombok.config
+
+# Project IDE config files
+*.ipr
+*.iws
+*.idea/
+
+# Run configurations
+*.run.xml
+
+# IntelliJ code style
+.idea/codeStyles/
+.idea/workspace.xml
+
+# Java specific binary logs
+*.hprof
+
+# Ignore local environment variables
+.env
