@@ -60,3 +60,5 @@ lombok.config
 
 # Ignore local environment variables
 .env
+
+# push test
