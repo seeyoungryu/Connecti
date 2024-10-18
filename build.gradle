@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
-	id "com.github.node-gradle.node" version "3.3.0" // Node.js 플러그인 추가
+	id "com.github.node-gradle.node" version "3.3.0" // Node.js 플러그인 추가 (Node 베이스의 코드를 Gradle 이용해서 빌드할 때 사하는 플러그인)
 }
 
 group = 'com.seeyoungryu'
@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
+//	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
@@ -57,6 +57,7 @@ task cleanFrontEnd(type: Delete) {
 }
 
 //작업 간 종속성 설정
+//npm -> 리액트 빌드 시 사용하는 툴
 npmBuild.dependsOn npmInstall
 copyFrontEnd.dependsOn npmBuild
 compileJava.dependsOn copyFrontEnd
