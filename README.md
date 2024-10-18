@@ -1,5 +1,8 @@
 # Connecti - SNS 서비스 플랫폼
 
+<img src="https://github.com/user-attachments/assets/fa462508-0bf2-420a-9b50-b0140e0e5597" alt="Connecti Logo" width="600">
+
+
 Connecti는 사람과 아이디어를 원활하게 연결해주는 소셜 네트워킹 서비스(SNS) 플랫폼입니다. 
 이 프로젝트는 최신 기술과 프레임워크를 사용해 확장 가능하고, 보안이 뛰어나며, 대규모 트래픽 처리가 가능한 효율적인 SNS 플랫폼을 만드는 것을 목표로 합니다.
 
