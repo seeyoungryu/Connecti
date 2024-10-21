@@ -29,11 +29,29 @@ public class UserControllerTest {
         String username = "testuser1";
         String password = "password1";
 
+        //@Todo mocking 필요
+
         mockMvc.perform(post("/api/vi/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content() //@Todo : add request body
                 ).andDo(print())
                 .andExpect(status().isOk());
+    }
+
+
+    @Test
+    public void 회원가입시_중복된username기재시_에러반환() {
+        String username = "testuser1";
+        String password = "password1";
+
+
+        //@Todo mocking 필요
+
+        mockMvc.perform(post("/api/vi/users/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content() //@Todo : add request body
+                ).andDo(print())
+                .andExpect(status().isConflict());
     }
 
 
