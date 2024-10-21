@@ -1,5 +1,7 @@
 package com.seeyoungryu.connecti.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seeyoungryu.connecti.controller.request.UserJoinRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,10 @@ public class UserControllerTest {
     private MockMvc mockMvc;
     //실제 메서드 사용하려면 주입 필요함
 
+    @Autowired
+    private ObjectMapper objectMapper;
+    //JSON 데이터를 Java 객체로 변환하거나, Java 객체를 JSON으로 변환하는 데 사용되는 [Jackson 라이브러리]의 클래스
+
     @Test
     @DisplayName("회원가입 테스트")
     public void testUserRegistration() throws Exception {
@@ -33,7 +39,7 @@ public class UserControllerTest {
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content() // : Request body 추가 필요 -> .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password))) // : Request body -> .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
                 ).andDo(print())
                 .andExpect(status().isOk());
     }
@@ -48,7 +54,7 @@ public class UserControllerTest {
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content() // : Request body 추가 필요 -> .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password))) // : Request body -> .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
                 ).andDo(print())
                 .andExpect(status().isConflict());
     }
