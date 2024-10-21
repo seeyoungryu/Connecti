@@ -7,6 +7,11 @@ package com.seeyoungryu.connecti.controller.request;
 - TDD에서의 사용: 테스트에서 사용자 요청 데이터를 전달하는 형식을 정의했기 때문에, 이를 처리할 클래스를 만들어 테스트가 올바르게 작동하도록 하기 위함.
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
 public class UserJoinRequest {
 
     private String userName;
