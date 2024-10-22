@@ -2,6 +2,7 @@ package com.seeyoungryu.connecti.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seeyoungryu.connecti.controller.request.UserJoinRequest;
+import com.seeyoungryu.connecti.controller.request.UserLoginRequest;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.service.UserService;
@@ -38,6 +39,9 @@ public class UserControllerTest {
     @MockBean
     private UserService userService;
 
+    /*
+    회원가입 테스트 (성공, 실패)
+     */
     @Test
     @DisplayName("회원가입 테스트")
     public void testUserRegistration() throws Exception {
@@ -74,5 +78,59 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password))) // : Request body -> .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
                 ).andDo(print())
                 .andExpect(status().isConflict());
+    }
+
+    /*
+    로그인 테스트 (성공, 에러(미가입, 잘못된 패스워드))
+     */
+    @Test
+    @DisplayName("로그인 테스트")
+    public void testUserLoginSuccess() throws Exception {
+        String username = "testuser1";
+        String password = "password1";
+
+        // * add mocking *
+        User mockUser = mock(User.class);
+        when(userService.join()).thenReturn(mockUser);
+
+        mockMvc.perform(post("/api/v1/users/signIn")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password)))
+                ).andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("로그인 테스트(로그인시 회원가입이 되지 않은 userName 입력시 에러 반환)")
+    public void testLoginWithUnregisteredUserReturnsError() throws Exception {
+        String username = "testuser1";
+        String password = "password1";
+
+        // * add mocking *
+        User mockUser = mock(User.class);
+        when(userService.login()).thenThrow(new ConnectiApplicationException());
+
+        mockMvc.perform(post("/api/v1/users/signIn")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(username, password)))
+                ).andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("로그인 테스트(로그인시 잘못된 password 입력시 에러 반환)")
+    public void testLoginWithIncorrectPasswordReturnsError() throws Exception {
+        String username = "testuser1";
+        String password = "wrongpassword";
+
+        // * add mocking *
+        User mockUser = mock(User.class);
+        when(userService.login()).thenThrow(new ConnectiApplicationException());
+
+        mockMvc.perform(post("/api/v1/users/signIn")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(username, password)))
+                ).andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 }
