@@ -2,14 +2,19 @@ package com.seeyoungryu.connecti.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seeyoungryu.connecti.controller.request.UserJoinRequest;
+import com.seeyoungryu.connecti.model.User;
+import com.seeyoungryu.connecti.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,13 +34,25 @@ public class UserControllerTest {
     private ObjectMapper objectMapper;
     //JSON 데이터를 Java 객체로 변환하거나, Java 객체를 JSON으로 변환하는 데 사용되는 [Jackson 라이브러리]의 클래스
 
+    @MockBean
+    private UserService userService;
+
     @Test
     @DisplayName("회원가입 테스트")
     public void testUserRegistration() throws Exception {
         String username = "testuser1";
         String password = "password1";
 
-        //@Todo mocking 필요
+        //@Todo : add mocking
+        //when(userService.join().thenReturn(mock(User.class)) > 불가 (동작이 완료되지 않은 상태에서 메서드 체이닝 방식으로 잘못된 호출을 시도)
+
+        User mockUser = mock(User.class);
+        //User 클래스의 가짜 객체를 생성해 mockUser로 설정함.
+        when(userService.join()).thenReturn(mockUser);
+        //when(userService.join()).thenReturn(mockUser);: userService.join()이 호출되면 mockUser를 반환하도록 설정함.
+        //이렇게 수정하면 userService.join() 메서드가 호출될 때, 실제로 new User()를 반환하는 것이 아니라 미리 만들어둔 mockUser 객체를 반환하게 되어, 테스트에서 원하는 가짜 동작을 정의할 수 있음.
+
+
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
