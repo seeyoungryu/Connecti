@@ -17,7 +17,6 @@ public class UserController {
     //Todo : implement
     public void join() {
         //join
-        userService.join();
+        userService.join("", "");
     }
-
 }

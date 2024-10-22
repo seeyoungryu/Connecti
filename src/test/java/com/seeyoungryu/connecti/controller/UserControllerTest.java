@@ -45,14 +45,14 @@ public class UserControllerTest {
     @Test
     @DisplayName("회원가입 테스트")
     public void testUserRegistration() throws Exception {
-        String username = "testuser1";
-        String password = "password1";
+        String username = "testuser";
+        String password = "password";
 
         // * add mocking *
         //when(userService.join().thenReturn(mock(User.class)) > 불가 (동작이 완료되지 않은 상태에서 메서드 체이닝 방식으로 잘못된 호출을 시도)
         User mockUser = mock(User.class);
         //User 클래스의 가짜 객체를 생성해 mockUser로 설정함.
-        when(userService.join()).thenReturn(mockUser);
+        when(userService.join("testuser", "password")).thenReturn(mockUser);
         //when(userService.join()).thenReturn(mockUser);: userService.join()이 호출되면 mockUser를 반환하도록 설정함.
         //ㄴ> userService.join() 메서드가 호출될 때, 실제로 new User()를 반환하는 것이 아니라 미리 만들어둔 mockUser 객체를 반환하게 되어, 테스트에서 원하는 가짜 동작을 정의할 수 있음.
 
@@ -66,12 +66,12 @@ public class UserControllerTest {
     @Test
     @DisplayName("중복된 사용자명으로 회원가입 시 에러 반환")
     public void testRegistrationWithDuplicateUsernameReturnsError() throws Exception {
-        String username = "testuser1";
-        String password = "password1";
+        String username = "testuser";
+        String password = "password";
 
         // * add mocking *
         User mockUser = mock(User.class);
-        when(userService.join()).thenThrow(new ConnectiApplicationException());
+        when(userService.join("testuser", "password")).thenThrow(new ConnectiApplicationException());
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,12 +86,12 @@ public class UserControllerTest {
     @Test
     @DisplayName("로그인 테스트")
     public void testUserLoginSuccess() throws Exception {
-        String username = "testuser1";
-        String password = "password1";
+        String username = "testuser";
+        String password = "password";
 
         // * add mocking *
         User mockUser = mock(User.class);
-        when(userService.join()).thenReturn(mockUser);
+        when(userService.join("testuser", "password")).thenReturn(mockUser);
 
         mockMvc.perform(post("/api/v1/users/signIn")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -103,8 +103,8 @@ public class UserControllerTest {
     @Test
     @DisplayName("로그인 테스트(로그인시 회원가입이 되지 않은 userName 입력시 에러 반환)")
     public void testLoginWithUnregisteredUserReturnsError() throws Exception {
-        String username = "testuser1";
-        String password = "password1";
+        String username = "testuser";
+        String password = "password";
 
         // * add mocking *
         User mockUser = mock(User.class);
@@ -120,7 +120,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("로그인 테스트(로그인시 잘못된 password 입력시 에러 반환)")
     public void testLoginWithIncorrectPasswordReturnsError() throws Exception {
-        String username = "testuser1";
+        String username = "testuser";
         String password = "wrongpassword";
 
         // * add mocking *
