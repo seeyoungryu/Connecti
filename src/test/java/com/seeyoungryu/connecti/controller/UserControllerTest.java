@@ -2,6 +2,7 @@ package com.seeyoungryu.connecti.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seeyoungryu.connecti.controller.request.UserJoinRequest;
+import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.service.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -66,8 +67,7 @@ public class UserControllerTest {
 
         // * add mocking *
         User mockUser = mock(User.class);
-        when(userService.join()).thenThrow(new RuntimeException());
-
+        when(userService.join()).thenThrow(new ConnectiApplicationException());
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
