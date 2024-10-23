@@ -1,9 +1,12 @@
 package com.seeyoungryu.connecti.service;
 
 import com.seeyoungryu.connecti.model.User;
+import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -12,11 +15,12 @@ public class UserService {
     private final UserEntityRepository userEntityRepository;
 
     //Todo : implement
-    public User join(String username, String password) {
+    public User join(String userName, String password) {
         //1. 입력한 username 으로 이미 가입된 user 가 있는지
+        Optional<UserEntity> userEntity = userEntityRepository.findByUserName(userName);
+
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
 
-        UserEntityRepository.findByUserName();
 
         //반환 -> User 객체를 반환하도록 함
         return new User();
