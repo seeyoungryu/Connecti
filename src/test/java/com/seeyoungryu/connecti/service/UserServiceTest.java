@@ -1,6 +1,7 @@
 package com.seeyoungryu.connecti.service;
 
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
+import com.seeyoungryu.connecti.fixture.UserEntityFixture;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import org.junit.jupiter.api.Assertions;
@@ -57,38 +58,55 @@ public class UserServiceTest {
     }
 
 
+    // @Todo : 위의 코드는 현재 mock 객체로 사용중, fixture 로 바꾸는 코드 확인하기, 이유
+
+
     /*
     로그인 테스트 (성공, 에러(미가입, 잘못된 패스워드))
      */
+
     @Test
     @DisplayName("로그인 성공: 올바른 사용자명과 비밀번호")
     void testUserLoginSuccess() {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "password";
 
-        // Mocking (mock 객체 반환을 위함)
-        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.empty());
-        when(userEntityRepository.save(any())).thenReturn(Optional.of(mock(UserEntity.class)));
+        //mock 대신에 fixture 사용
+        UserEntity fixture = UserEntityFixture.get(userName, password);// -> get -> 테스트용 가짜 userentity 가 리턴됨.
+        //mocking
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        Assertions.assertDoesNotThrow(() -> userService.login(userName, password));
 
-        Assertions.assertDoesNotThrow(() -> userService.login(username, password));
+
     }
 
     @Test
     @DisplayName("로그인 실패: 존재하지 않는 사용자명")
     void testLoginWithUnregisteredUserReturnsError() {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "password";
 
-        // 내부 코드
+        //mocking
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
+        Assertions.assertThrows(ConnectiApplicationException.class, () -> userService.login(userName, password));
+
     }
+
 
     @Test
     @DisplayName("로그인 실패: 잘못된 비밀번호")
     void testLoginWithIncorrectPasswordReturnsError() {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "password";
+        String wrongPassword = "wrongPassword"; //로그인 실패
 
-        // 내부 코드
+        UserEntity fixture = UserEntityFixture.get(userName, password);
+
+        //mocking
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        Assertions.assertThrows(ConnectiApplicationException.class, () -> userService.login(userName, wrongPassword));  // 잘못된 패스워드
+
+
     }
 
 }
