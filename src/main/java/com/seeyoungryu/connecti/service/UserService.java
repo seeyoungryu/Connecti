@@ -20,7 +20,7 @@ public class UserService {
         Optional<UserEntity> userEntity = userEntityRepository.findByUserName(userName);
 
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
-
+        userEntityRepository.save(new UserEntity());
 
         //반환 -> User 객체를 반환하도록 함
         return new User();
