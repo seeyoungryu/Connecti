@@ -45,10 +45,10 @@ public class UserControllerTest {
     @Test
     @DisplayName("회원가입 테스트")
     public void testUserRegistration() throws Exception {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "password";
 
-        // * add mocking *
+        // * mocking *
         //when(userService.join().thenReturn(mock(User.class)) > 불가 (동작이 완료되지 않은 상태에서 메서드 체이닝 방식으로 잘못된 호출을 시도)
         User mockUser = mock(User.class);
         //User 클래스의 가짜 객체를 생성해 mockUser로 설정함.
@@ -58,7 +58,7 @@ public class UserControllerTest {
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password))) // : Request body -> .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password))) // : Request body -> .content("{\"userName\": \"" + userName + "\", \"password\": \"" + password + "\"}")
                 ).andDo(print())
                 .andExpect(status().isOk());
     }
@@ -66,7 +66,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("중복된 사용자명으로 회원가입 시 에러 반환")
     public void testRegistrationWithDuplicateUsernameReturnsError() throws Exception {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "password";
 
         // * add mocking *
@@ -75,7 +75,7 @@ public class UserControllerTest {
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password))) // : Request body -> .content("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password))) // : Request body -> .content("{\"userName\": \"" + userName + "\", \"password\": \"" + password + "\"}")
                 ).andDo(print())
                 .andExpect(status().isConflict());
     }
@@ -86,16 +86,16 @@ public class UserControllerTest {
     @Test
     @DisplayName("로그인 테스트")
     public void testUserLoginSuccess() throws Exception {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "password";
 
-        // * add mocking *
+        // * mocking *
         User mockUser = mock(User.class);
         when(userService.join("testuser", "password")).thenReturn(mockUser);
 
         mockMvc.perform(post("/api/v1/users/signIn")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password)))
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password)))
                 ).andDo(print())
                 .andExpect(status().isOk());
     }
@@ -103,16 +103,16 @@ public class UserControllerTest {
     @Test
     @DisplayName("로그인 테스트(로그인시 회원가입이 되지 않은 userName 입력시 에러 반환)")
     public void testLoginWithUnregisteredUserReturnsError() throws Exception {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "password";
 
-        // * add mocking *
+        // * mocking *
         User mockUser = mock(User.class);
-        when(userService.login()).thenThrow(new ConnectiApplicationException());
+        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException());
 
         mockMvc.perform(post("/api/v1/users/signIn")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(username, password)))
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
                 ).andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -120,16 +120,16 @@ public class UserControllerTest {
     @Test
     @DisplayName("로그인 테스트(로그인시 잘못된 password 입력시 에러 반환)")
     public void testLoginWithIncorrectPasswordReturnsError() throws Exception {
-        String username = "testuser";
+        String userName = "testuser";
         String password = "wrongpassword";
 
-        // * add mocking *
+        // * mocking *
         User mockUser = mock(User.class);
-        when(userService.login()).thenThrow(new ConnectiApplicationException());
+        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException());
 
         mockMvc.perform(post("/api/v1/users/signIn")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(username, password)))
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
                 ).andDo(print())
                 .andExpect(status().isUnauthorized());
     }
