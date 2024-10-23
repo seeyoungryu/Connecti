@@ -1,5 +1,6 @@
 package com.seeyoungryu.connecti.service;
 
+import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
@@ -14,9 +15,14 @@ public class UserService {
 
     private final UserEntityRepository userEntityRepository;
 
+
+    /*
+    회원가입
+     */
+
     //Todo : implement
     public User join(String userName, String password) {
-        //1. 입력한 username 으로 이미 가입된 user 가 있는지
+        //1. 입력한 username 으로 이미 가입된 user 가 있는지 확인
         Optional<UserEntity> userEntity = userEntityRepository.findByUserName(userName);
 
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
@@ -26,8 +32,24 @@ public class UserService {
         return new User();
     }
 
+
+    /*
+    로그인
+     */
+
     //Todo : implement
     public String login(String userName, String password) { //반환 -> JWT사용할 것이므로 암호화된 문자열을 반환하는 메서드로 처리해야함 * -> 반환값 : String
+
+        //1. 회원가입 여부 확인
+        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(ConnectiApplicationException::new); // * 참고: lamda -> .orElseThrow(() -> new ConnectiApplicationException());)
+
+        //2. 비밀번호 확인
+        if (!userEntity.getPassword().equals(password)) {
+            throw new ConnectiApplicationException();
+        }
+
+        //3. 토큰 생성
+
         return "";
     }
 }
