@@ -1,5 +1,6 @@
 package com.seeyoungryu.connecti.service;
 
+import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import org.junit.jupiter.api.Assertions;
@@ -37,6 +38,20 @@ public class UserServiceTest {
         when(userEntityRepository.save(any())).thenReturn(Optional.of(mock(UserEntity.class)));
 
         Assertions.assertDoesNotThrow(() -> userService.join(username, password));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패: 이미 존재하는 사용자명으로 인한 에러")
+    void testUserRegistrationFailsDueToDuplicateUsername() {
+        String username = "testuser";
+        String password = "password";
+
+        // Todo: add Mocking (mock 객체 반환을 위함)
+        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.of(mock(UserEntity.class))); // 이미 존재하는 유저로 가정
+        when(userEntityRepository.save(any())).thenReturn(Optional.of(mock(UserEntity.class)));
+
+        Assertions.assertThrows(ConnectiApplicationException.class, () -> userService.join(username, password));
+        //join 시, 이미 회원가입한 유저가 있으므로, 에러를 던져줘야(throw해야함) -> 던져준 에러(exeption)로 컨트롤러 단에서 에러를 처리 할 수 있도록!
     }
 
 
