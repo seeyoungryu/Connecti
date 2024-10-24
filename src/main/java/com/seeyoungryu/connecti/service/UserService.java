@@ -7,8 +7,6 @@ import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -22,8 +20,12 @@ public class UserService {
 
     //Todo : implement
     public User join(String userName, String password) {
-        //1. 입력한 username 으로 이미 가입된 user 가 있는지 확인
-        Optional<UserEntity> userEntity = userEntityRepository.findByUserName(userName);
+        //     < 1. 입력한 username 으로 이미 가입된 user 가 있는지 확인 >
+        //(태스트 코드용 기본 코드 : Optional<UserEntity> userEntity = userEntityRepository.findByUserName(userName);)
+        //(실제구현)
+        userEntityRepository.findByUserName(userName).ifPresent(it -> {   // * it(userEntity라고 해도 됨): 람다식(parameter -> {code})의 매개변수 이름을 간단히 표현
+            throw new ConnectiApplicationException();
+        });
 
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
         userEntityRepository.save(new UserEntity());
