@@ -19,6 +19,6 @@ public class UserController {
     //Todo : implement
     public void join(@RequestBody UserJoinRequest request) {
         //join
-        userService.join(request.getUserName(), request.getPassword());
+        userService.join(request.getUserName(), request.getPassword()); //바디로 받아온값을 실제 메서드에 넘겨줄 수 있도록
     }
 }
