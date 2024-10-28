@@ -27,3 +27,12 @@ public class UserController {
 //        return Response.success(response);
     }
 }
+
+
+
+
+
+
+
+// * 컨트롤러(Controller): 사용자가 요청을 보낼 수 있는 API를 정의하는 레이어
+// 사용자의 요청을 받아 서비스 레이어에서 필요한 작업을 호출하고, 결과를 사용자에게 반환함
