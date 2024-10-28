@@ -1,5 +1,6 @@
 package com.seeyoungryu.connecti.model.entity;
 
+import com.seeyoungryu.connecti.model.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.SQLDelete;
@@ -18,13 +19,17 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_name")
+    @Column
     private String userName;
 
     @Column
     private String password;
 
+    @Column
+    private UserRole role = UserRole.USER;
+
     @Column(name = "registered_at")
+    @Enumerated(EnumType.STRING)
     private Timestamp registeredAt;
 
     @Column(name = "updated_at")
@@ -41,5 +46,13 @@ public class UserEntity {
     @PreUpdate
     void onUpdate() {
         this.updatedAt = Timestamp.from(Instant.now());
+    }
+
+    //new entity 만들어주는 메소드 추가
+    public static UserEntity of(String userName, String password) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.userName = userName;
+        userEntity.password = password;
+        return userEntity;
     }
 }
