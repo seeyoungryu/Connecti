@@ -56,3 +56,6 @@ public class UserEntity {
         return userEntity;
     }
 }
+
+//userEntityRepository.save(new UserEntity());
+//ㄴ추가된 메서드 사용 ->  userEntityRepository.save(UserEntity.of(userName, password));

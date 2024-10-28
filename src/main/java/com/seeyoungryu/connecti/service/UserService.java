@@ -29,10 +29,10 @@ public class UserService {
 
         //(위에서 throw 가 안되고 넘어오면!)
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
-        userEntityRepository.save(new UserEntity());
+        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, password));
 
         //반환 -> User 객체를 반환하도록 함
-        return new User();
+        return User.fromEntity(userEntity);
     }
 
 
