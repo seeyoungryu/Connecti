@@ -1,7 +1,20 @@
 package com.seeyoungryu.connecti.exception;
 
-//@Todo : 추가 디벨롭
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class ConnectiApplicationException extends RuntimeException {
-    public ErrorCode errorCode;
-    
+    private ErrorCode errorCode;
+    private String message;
+
+
+    @Override
+    public String getMessage() {
+        if (message == null) {
+            return errorCode.getMessage();
+        }
+        return String.format("%s,%s", errorCode, getMessage(), message);
+    }
 }
