@@ -14,6 +14,6 @@ public class Response<T> {
     }
 
     public static <T> Response<T> success(T result) {
-        return new Response<>("SUCCESS", null);  //하드코딩
+        return new Response<>("SUCCESS", result);
     }
 }
