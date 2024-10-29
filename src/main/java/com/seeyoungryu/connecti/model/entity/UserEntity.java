@@ -29,7 +29,6 @@ public class UserEntity {
     private UserRole role = UserRole.USER;
 
     @Column(name = "registered_at")
-    @Enumerated(EnumType.STRING)
     private Timestamp registeredAt;
 
     @Column(name = "updated_at")
@@ -59,3 +58,4 @@ public class UserEntity {
 
 //userEntityRepository.save(new UserEntity());
 //ㄴ추가된 메서드 사용 ->  userEntityRepository.save(UserEntity.of(userName, password));
+
