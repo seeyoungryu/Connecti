@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seeyoungryu.connecti.controller.request.UserJoinRequest;
 import com.seeyoungryu.connecti.controller.request.UserLoginRequest;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
+import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.service.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -71,7 +72,7 @@ public class UserControllerTest {
 
         // * add mocking *
         User mockUser = mock(User.class);
-        when(userService.join("testuser", "password")).thenThrow(new ConnectiApplicationException());
+        when(userService.join("testuser", "password")).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));      //@Todo
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +109,7 @@ public class UserControllerTest {
 
         // * mocking *
         User mockUser = mock(User.class);
-        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException());
+        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));
 
         mockMvc.perform(post("/api/v1/users/signIn")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -125,7 +126,7 @@ public class UserControllerTest {
 
         // * mocking *
         User mockUser = mock(User.class);
-        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException());
+        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));
 
         mockMvc.perform(post("/api/v1/users/signIn")
                         .contentType(MediaType.APPLICATION_JSON)
