@@ -110,3 +110,52 @@ public class UserServiceTest {
     }
 
 }
+
+
+
+/*
+이 `UserServiceTest` 클래스는 **회원가입과 로그인 기능의 성공과 실패에 대한 테스트**를 수행합니다. 이 테스트 클래스의 각 부분과 동작을 설명해드릴게요.
+
+### 클래스 설명 및 각 메서드 동작
+
+1. **`@SpringBootTest`**
+   Spring Boot의 모든 설정을 로드하여 **통합 테스트**를 수행합니다. 이 어노테이션 덕분에 실제 애플리케이션 환경과 유사하게 테스트할 수 있습니다.
+
+2. **`@MockBean`과 `@Autowired`**
+   - **`@MockBean`**: `UserEntityRepository`를 목(mock)으로 설정해 실제 DB 접근 없이 가짜 객체를 이용해 테스트합니다.
+   - **`@Autowired`**: `UserService`는 실제 서비스 클래스가 주입되며, 테스트 대상 메서드의 호출이 이루어집니다.
+
+### 메서드별 테스트 설명
+
+#### 회원가입 테스트
+1. **성공 테스트 - `testUserRegistrationSuccess`**
+   - **Mocking**: `userEntityRepository.findByUserName`은 비어 있는 `Optional`을 반환하도록 설정하여, 해당 사용자명이 없는 상태로 가정합니다.
+   - `userEntityRepository.save`는 임의의 `UserEntity`를 반환하게 해 회원 정보 저장이 완료된 것으로 가정합니다.
+   - **Assertions**: `Assertions.assertDoesNotThrow`를 통해 `userService.join` 호출 시 예외가 발생하지 않으면 성공으로 간주합니다.
+
+2. **실패 테스트 (중복 사용자명) - `testUserRegistrationFailsDueToDuplicateUsername`**
+   - **Mocking**: `userEntityRepository.findByUserName`이 이미 존재하는 사용자로 가정하고, 이미 가입된 사용자 객체를 반환하도록 설정합니다.
+   - **Assertions**: `Assertions.assertThrows`는 `userService.join`이 중복 사용자 예외(ConnectiApplicationException)를 던져야만 성공입니다.
+
+#### 로그인 테스트
+1. **성공 테스트 - `testUserLoginSuccess`**
+   - **Fixture 사용**: `UserEntityFixture.get`을 이용해 테스트용 사용자 객체를 생성합니다.
+   - **Mocking**: `userEntityRepository.findByUserName`이 해당 사용자명을 반환하도록 설정해 사용자 인증이 통과되게 합니다.
+   - **Assertions**: `Assertions.assertDoesNotThrow`로 예외 발생이 없을 때 로그인 성공으로 판단합니다.
+
+2. **실패 테스트 (미등록 사용자) - `testLoginWithUnregisteredUserReturnsError`**
+   - **Mocking**: `userEntityRepository.findByUserName`이 비어 있는 `Optional`을 반환해 미가입 상태를 가정합니다.
+   - **Assertions**: `Assertions.assertThrows`가 `ConnectiApplicationException` 예외를 반환해야 성공입니다.
+
+3. **실패 테스트 (잘못된 비밀번호) - `testLoginWithIncorrectPasswordReturnsError`**
+   - **Fixture 사용**: 테스트용 사용자 객체를 Fixture에서 가져옵니다.
+   - **Mocking**: `userEntityRepository.findByUserName`이 사용자 객체를 반환하도록 설정합니다.
+   - **Assertions**: 잘못된 비밀번호로 로그인할 때 `ConnectiApplicationException` 예외가 발생해야 성공입니다.
+
+### Mock 객체와 Fixture의 차이점
+
+- **Mock**은 메서드가 호출될 때 **특정 동작을 흉내 내도록 설정**하는 데 유리합니다.
+- **Fixture**는 실제 사용될 가짜 객체를 만들어 필요한 데이터를 그대로 제공하기 때문에 **실제 객체처럼 동작**합니다.
+
+이를 통해 이 테스트는 가짜 환경에서의 회원가입과 로그인 시도 전 과정을 재현하고, 기대된 동작을 검증하는 구조로 설계되었습니다.
+ */

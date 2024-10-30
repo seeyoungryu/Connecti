@@ -3,7 +3,12 @@ package com.seeyoungryu.connecti.fixture;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 
 
-// fixture -> 테스트용(가짜) userentity 클래스 (mock...?)
+/* < Fixture 클래스 사용 >
+테스트에서 사용될 더미(가짜) UserEntity 데이터를 생성하여,
+ 반복적인 코드 작성을 줄이고 테스트의 가독성을 높이기 위함
+ */
+
+
 public class UserEntityFixture {
     public static UserEntity get(String userName, String password) {
 
@@ -16,3 +21,4 @@ public class UserEntityFixture {
         return new UserEntity();
     }
 }
+

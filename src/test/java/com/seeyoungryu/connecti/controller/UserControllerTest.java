@@ -22,9 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@AutoConfigureMockMvc 어노테이션 (현재 API 형태의 컨트롤러를 테스트하는 중임)
-// : 웹 서버를 띄우지 않고도 컨트롤러의 API를 테스트할 수 있음->API 요청을 "모의"로 보내고 그 응답을 검증하는 테스트 가능
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class UserControllerTest {
@@ -37,7 +34,7 @@ public class UserControllerTest {
     private ObjectMapper objectMapper;
     //JSON 데이터를 Java 객체로 변환하거나, Java 객체를 JSON으로 변환하는 데 사용되는 [Jackson 라이브러리]의 클래스
 
-    @MockBean
+    @MockBean // 테스트에 필요한 userService를 모킹하여 실제 인스턴스가 아닌 테스트용 객체를 주입
     private UserService userService;
 
     /*
@@ -70,7 +67,7 @@ public class UserControllerTest {
         String userName = "testuser";
         String password = "password";
 
-        // * add mocking *
+        // * mocking *
         User mockUser = mock(User.class);
         when(userService.join("testuser", "password")).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));      //@Todo
 
@@ -135,3 +132,10 @@ public class UserControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 }
+
+
+/*
+- @AutoConfigureMockMvc 어노테이션 (현재 API 형태의 컨트롤러를 테스트하는 중임)
+: 웹 서버를 띄우지 않고도 컨트롤러의 API를 모의로 테스트할 수 있음-> *MockMvc*를 자동으로 구성하여 요청을 보내고, 그 응답을 검증하는 테스트를 가능하게 함
+- @MockBean: 테스트에 필요한 userService를 모킹하여 실제 인스턴스가 아닌 테스트용 객체를 주입
+ */
