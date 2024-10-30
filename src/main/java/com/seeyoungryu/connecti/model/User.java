@@ -1,18 +1,21 @@
 package com.seeyoungryu.connecti.model;
 
-// DTO 역할을 하는 클래스 ~ 유저 정보를 가져와서 서비스단에서 처리할 때 사용(DB에는 영향이 없음)
-// (UserEnity.java -> DB에 저장~)
-
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.sql.Timestamp;
 
-//Todo : implement
+/*
+User.java - 애플리케이션 내 사용자 *모델* 클래스
+역할: UserEntity와 다르게, 비즈니스 로직(서비스 레이어)에서 활용되는 데이터 모델임
+데이터베이스와 연결되지 않으며(디비에 영향 없음), UserEntity의 데이터를 기반으로 사용자 정보를 관리(유저 정보를 가져와서 서비스단에서 처리할 때 사용)
+(UserEnity.java -> DB에 저장~)
+ */
+
 @Getter
 @AllArgsConstructor
-// User.java
+
 public class User {
     private Long id;
     private String userName;
@@ -34,4 +37,10 @@ public class User {
         );
     }
 }
+
+/* fromEntity : 정적 팩토리 메서드 (new 키워드 사용x)
+- UserEntity 객체를 받아 그 정보만으 User 객체를 생성하고 반환(new User) -> 엔티티를 서비스 계층에서 활용할 수 있게 함
+*/
+
+
 
