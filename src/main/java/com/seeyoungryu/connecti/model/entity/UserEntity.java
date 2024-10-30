@@ -9,6 +9,8 @@ import org.hibernate.annotations.Where;
 import java.sql.Timestamp;
 import java.time.Instant;
 
+
+// UserEntity - JPA 엔티티 클래스
 @Getter
 @Table(name = "users")
 @Entity
@@ -56,6 +58,14 @@ public class UserEntity {
     }
 }
 
-//userEntityRepository.save(new UserEntity());
-//ㄴ추가된 메서드 사용 ->  userEntityRepository.save(UserEntity.of(userName, password));
 
+
+
+
+/* (어노테이션 정리)
+@Entity: JPA 엔티티로 설정하여, Spring Data JPA가 이 클래스를 통해 데이터베이스 테이블과 상호작용하도록 함
+@Table(name = "users"): 엔티티가 매핑될 데이터베이스 테이블명을 지정
+@SQLDelete: 데이터 삭제 시 실제로는 deleted_at 필드만 업데이트하여 *논리적 삭제를 구현 (소프트 딜리트)
+@Where(clause = "deleted_at IS NULL"): deleted_at 필드가 NULL인 데이터만 조회하도록 설정하여, 논리적으로 삭제된 데이터를 제외하고 조회
+@PrePersist와 @PreUpdate: 엔티티가 <<처음 저장되거나 업데이트>>될 때 <<자동>>으로 registeredAt과 updatedAt을 설정합니다.
+ */
