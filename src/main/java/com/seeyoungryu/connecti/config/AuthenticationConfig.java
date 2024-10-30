@@ -15,7 +15,7 @@ public class AuthenticationConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)  // CSRF 보호 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/users/join", "/api/v1/users/login").permitAll()  // 특정 경로는 접근 허용
+                        .requestMatchers("/api/v1/users/join").permitAll()  // 특정 경로는 접근 허용
                         .anyRequest().authenticated()  // 나머지는 인증 필요
                 )
                 .sessionManagement(session -> session

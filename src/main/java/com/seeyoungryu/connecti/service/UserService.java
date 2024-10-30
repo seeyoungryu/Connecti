@@ -8,6 +8,7 @@ import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -21,7 +22,7 @@ public class UserService {
     회원가입
      */
 
-    //Todo : implement
+    @Transactional //익셉션 발생시 엔티티 세이브 하는 부분이 롤백됨 (데이터에 유저가 저장 안됨)
     public User join(String userName, String password) {
         //     < 1. 입력한 username 으로 이미 가입된 user 가 있는지 확인 >
         //(태스트 코드용 기본 코드 : Optional<UserEntity> userEntity = userEntityRepository.findByUserName(userName);)
@@ -33,8 +34,10 @@ public class UserService {
         //(위에서 throw 가 안되고 넘어오면!)
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
         UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, encoder.encode(password)));  //비밀번호를 encode 해서 저장
+
+        throw new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, String.format("%s is duplicated", userName));
         //반환 -> User 객체를 반환하도록 함
-        return User.fromEntity(userEntity);
+//        return User.fromEntity(userEntity);
     }
 
 
