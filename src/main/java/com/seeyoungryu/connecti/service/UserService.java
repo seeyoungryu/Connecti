@@ -6,6 +6,7 @@ import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserEntityRepository userEntityRepository;
+    private final PasswordEncoder encoder; // Bean 받아오기
 
 
     /*
@@ -30,8 +32,7 @@ public class UserService {
 
         //(위에서 throw 가 안되고 넘어오면!)
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
-        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, password));
-
+        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, encoder.encode(password)));  //비밀번호를 encode 해서 저장
         //반환 -> User 객체를 반환하도록 함
         return User.fromEntity(userEntity);
     }
