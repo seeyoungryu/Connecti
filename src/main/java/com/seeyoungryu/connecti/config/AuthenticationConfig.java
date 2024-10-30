@@ -7,7 +7,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration
+//Spring Security 설정 클래스 (접근권한,세션정책 관리)
+@Configuration //스프링의 <설정>파일로 인식하도록 함
 public class AuthenticationConfig {
 
     @Bean
@@ -30,3 +31,5 @@ public class AuthenticationConfig {
 //람다 -> 참조식
 // 람다: .csrf(csrf -> csrf.disable())  // CSRF 보호 비활성화
 // 참조식으로 변경: .csrf(AbstractHttpConfigurer::disable)  // CSRF 보호 비활성화
+
+//@Bean -> 반환되는 SecurityFilterChain 객체를 Spring의 빈으로 등록하여 사용할 수 있게 함.
