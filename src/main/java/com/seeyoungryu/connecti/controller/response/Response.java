@@ -3,6 +3,8 @@ package com.seeyoungryu.connecti.controller.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+
+//응답의 기본 구조를 캡슐화하는 클래스
 @Getter
 @AllArgsConstructor
 public class Response<T> {
@@ -17,3 +19,4 @@ public class Response<T> {
         return new Response<>("SUCCESS", result);
     }
 }
+
