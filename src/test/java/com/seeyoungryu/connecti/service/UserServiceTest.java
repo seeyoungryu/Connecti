@@ -17,18 +17,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
+//@Todo : 전체적인 주석 정리 (흐름 파앍 후) 필요함
+
+
 @SpringBootTest
 public class UserServiceTest {
 
 
     @Autowired
-    private UserService userService;
-
+    private UserService userService; //실제 서비스 클래스 주입,테스트 대상 메서드 호출
     @MockBean
-    private UserEntityRepository userEntityRepository;
+    private UserEntityRepository userEntityRepository; //UserEntityRepository를 mock 으로 설정, 실제 디비 이용x, 가짜 객체를 이용해 테스트함
+
 
     /*
-    회원가입 테스트 (성공, 실패)
+    회원가입 테스트 (성공)
         */
     @Test
     @DisplayName("회원가입이 정상적으로 동작할 경우")
@@ -36,13 +40,24 @@ public class UserServiceTest {
         String username = "testuser";
         String password = "password";
 
-        // Mocking (mock 객체 반환을 위함)
-        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.empty()); //empty -> 아직 회원가입 된 적 없기 때문임
-        when(userEntityRepository.save(any())).thenReturn(Optional.of(mock(UserEntity.class)));
+        //기존 mock 대신 Fixture 사용
+        UserEntity fixture = UserEntityFixture.get(username, password);
+
+
+        //Mocking (mock 객체 반환을 위함)
+        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.empty()); //비어있는 Optional 을 반환하도록 하고 있음 (empty -> 사용자명이 없는 상태로 가정)
+        when(userEntityRepository.save(any())).thenReturn(fixture); // Fixture 사용하여 UserEntity 반환 ( mock 사용 코드 : thenReturn(Optional.of(mock(UserEntity.class))); )
 
         Assertions.assertDoesNotThrow(() -> userService.join(username, password));
     }
 
+    // @Todo : fixture -> mock 사용으로 변경 /완료
+    // ㄴ mock(UserEntity.class) 대신에 -> UserEntityFixture 를 사용하는 방식으로 수정
+
+
+    /*
+    회원가입 테스트 ( 실패 - 중복된 사용자명 )
+      */
     @Test
     @DisplayName("회원가입 실패: 이미 존재하는 사용자명으로 인한 에러")
     void testUserRegistrationFailsDueToDuplicateUsername() {
@@ -50,29 +65,49 @@ public class UserServiceTest {
         String password = "password";
 
         // Mocking (mock 객체 반환을 위함)
-        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.of(mock(UserEntity.class))); // 이미 존재하는 유저로 가정
+        // : 회원가입 테스트를 할 때 userEntityRepository.findByUserName가 데이터베이스에서 데이터를 찾는 대신 미리 정의된 <<가짜 데이터를 반환>>하도록 하는 것임 (가짜 UserEntity 객체가 반환됨)
+
+        // * when 메서드 * : 조건과 상황을 가정하는 메서드
+        // ㄴ> Mock 객체가 특정 입력을 받았을 때 어떤 동작을 수항할지 미리 설정함
+        //  ㄴ> 메서드를 호출하면 항상 빈 Optional 을 반환하도록 상황을 가정
+        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.of(mock(UserEntity.class))); // 해당 username으로 가입된 유저가 없다는 조건을 테스트 환경에서 미리 가정하는 코드임
         when(userEntityRepository.save(any())).thenReturn(Optional.of(mock(UserEntity.class)));
+        //Mocking 을 통해 -> mock(UserEntity.class) ~ 가짜 UserEntity 객체가 반환됨 ~ 실제 db와는 상관없이 UserEntity의 기능을 시뮬레이션 하는 객체 (실제 객체와 동일한 구조와 타입을 가지고 있으므로, 테스트 코드가 실제 상황과 비슷하게 작동하는지 확인할 수 있음)
+
 
         Assertions.assertThrows(ConnectiApplicationException.class, () -> userService.join(username, password));
         //join 시, 이미 회원가입한 유저가 있으므로, 에러를 던져줘야(throw해야함) -> 던져준 에러(exeption)로 컨트롤러 단에서 에러를 처리 할 수 있도록!
+        //userService.join이 중복 사용자 예외(ConnectiApplicationException)를 던져야만 성공 (Assertions.assertThrows를 통해 userService.join 메서드를 호출할 때 ConnectiApplicationException 예외가 발생하는지 확인)
+
+        /*
+        Assertions.assertThrows는 특정 예외가 발생하는지 검증함. 여기서는 ConnectiApplicationException 예외가 userService.join(username, password) 호출 시 발생해야 테스트가 통과함.
+        userService.join 메서드를 호출했을 때 중복 사용자 예외가 발생하는지를 검증하는 구조
+        따라서 join 메서드 실행 중 중복된 사용자명이 확인되면, ConnectiApplicationException 예외를 던지고 테스트가 성공함.
+         */
+
+
     }
 
 
-    // @Todo : 위의 코드는 현재 mock 객체로 사용중, fixture 로 바꾸는 코드 확인하기, 이유
+
 
 
     /*
-    로그인 테스트 (성공, 에러(미가입, 잘못된 패스워드))
+    로그인 테스트 (성공)
+    (변수 선언 → Mocking 설정 → 예외 발생 순서가 맞는지 여부)
      */
 
     @Test
     @DisplayName("로그인 성공: 올바른 사용자명과 비밀번호")
     void testUserLoginSuccess() {
+
+        //변수 선언 -> 테스트에 필요한 사용자 정보를 설정
         String userName = "testuser";
         String password = "password";
 
         //mock 대신에 fixture 사용
         UserEntity fixture = UserEntityFixture.get(userName, password);// -> get -> 테스트용 가짜 userentity 가 리턴됨.
+
         //mocking
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
         Assertions.assertDoesNotThrow(() -> userService.login(userName, password));
@@ -80,6 +115,9 @@ public class UserServiceTest {
 
     }
 
+    /*
+    로그인 테스트 (실패 - 미가입)
+     */
     @Test
     @DisplayName("로그인 실패: 존재하지 않는 사용자명")
     void testLoginWithUnregisteredUserReturnsError() {
@@ -92,7 +130,9 @@ public class UserServiceTest {
 
     }
 
-
+    /*
+    로그인 테스트 (실패 - 잘못된 패스워드)
+     */
     @Test
     @DisplayName("로그인 실패: 잘못된 비밀번호")
     void testLoginWithIncorrectPasswordReturnsError() {
@@ -112,50 +152,3 @@ public class UserServiceTest {
 }
 
 
-
-/*
-이 `UserServiceTest` 클래스는 **회원가입과 로그인 기능의 성공과 실패에 대한 테스트**를 수행합니다. 이 테스트 클래스의 각 부분과 동작을 설명해드릴게요.
-
-### 클래스 설명 및 각 메서드 동작
-
-1. **`@SpringBootTest`**
-   Spring Boot의 모든 설정을 로드하여 **통합 테스트**를 수행합니다. 이 어노테이션 덕분에 실제 애플리케이션 환경과 유사하게 테스트할 수 있습니다.
-
-2. **`@MockBean`과 `@Autowired`**
-   - **`@MockBean`**: `UserEntityRepository`를 목(mock)으로 설정해 실제 DB 접근 없이 가짜 객체를 이용해 테스트합니다.
-   - **`@Autowired`**: `UserService`는 실제 서비스 클래스가 주입되며, 테스트 대상 메서드의 호출이 이루어집니다.
-
-### 메서드별 테스트 설명
-
-#### 회원가입 테스트
-1. **성공 테스트 - `testUserRegistrationSuccess`**
-   - **Mocking**: `userEntityRepository.findByUserName`은 비어 있는 `Optional`을 반환하도록 설정하여, 해당 사용자명이 없는 상태로 가정합니다.
-   - `userEntityRepository.save`는 임의의 `UserEntity`를 반환하게 해 회원 정보 저장이 완료된 것으로 가정합니다.
-   - **Assertions**: `Assertions.assertDoesNotThrow`를 통해 `userService.join` 호출 시 예외가 발생하지 않으면 성공으로 간주합니다.
-
-2. **실패 테스트 (중복 사용자명) - `testUserRegistrationFailsDueToDuplicateUsername`**
-   - **Mocking**: `userEntityRepository.findByUserName`이 이미 존재하는 사용자로 가정하고, 이미 가입된 사용자 객체를 반환하도록 설정합니다.
-   - **Assertions**: `Assertions.assertThrows`는 `userService.join`이 중복 사용자 예외(ConnectiApplicationException)를 던져야만 성공입니다.
-
-#### 로그인 테스트
-1. **성공 테스트 - `testUserLoginSuccess`**
-   - **Fixture 사용**: `UserEntityFixture.get`을 이용해 테스트용 사용자 객체를 생성합니다.
-   - **Mocking**: `userEntityRepository.findByUserName`이 해당 사용자명을 반환하도록 설정해 사용자 인증이 통과되게 합니다.
-   - **Assertions**: `Assertions.assertDoesNotThrow`로 예외 발생이 없을 때 로그인 성공으로 판단합니다.
-
-2. **실패 테스트 (미등록 사용자) - `testLoginWithUnregisteredUserReturnsError`**
-   - **Mocking**: `userEntityRepository.findByUserName`이 비어 있는 `Optional`을 반환해 미가입 상태를 가정합니다.
-   - **Assertions**: `Assertions.assertThrows`가 `ConnectiApplicationException` 예외를 반환해야 성공입니다.
-
-3. **실패 테스트 (잘못된 비밀번호) - `testLoginWithIncorrectPasswordReturnsError`**
-   - **Fixture 사용**: 테스트용 사용자 객체를 Fixture에서 가져옵니다.
-   - **Mocking**: `userEntityRepository.findByUserName`이 사용자 객체를 반환하도록 설정합니다.
-   - **Assertions**: 잘못된 비밀번호로 로그인할 때 `ConnectiApplicationException` 예외가 발생해야 성공입니다.
-
-### Mock 객체와 Fixture의 차이점
-
-- **Mock**은 메서드가 호출될 때 **특정 동작을 흉내 내도록 설정**하는 데 유리합니다.
-- **Fixture**는 실제 사용될 가짜 객체를 만들어 필요한 데이터를 그대로 제공하기 때문에 **실제 객체처럼 동작**합니다.
-
-이를 통해 이 테스트는 가짜 환경에서의 회원가입과 로그인 시도 전 과정을 재현하고, 기대된 동작을 검증하는 구조로 설계되었습니다.
- */
