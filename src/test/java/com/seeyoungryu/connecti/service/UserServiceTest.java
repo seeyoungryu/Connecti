@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
@@ -27,9 +28,12 @@ public class UserServiceTest {
 
     @Autowired
     private UserService userService; //실제 서비스 클래스 주입,테스트 대상 메서드 호출
+
     @MockBean
     private UserEntityRepository userEntityRepository; //UserEntityRepository를 mock 으로 설정, 실제 디비 이용x, 가짜 객체를 이용해 테스트함
 
+    @MockBean
+    private BCryptPasswordEncoder encoder;
 
     /*
     회원가입 테스트 (성공)
@@ -46,7 +50,10 @@ public class UserServiceTest {
 
         //Mocking (mock 객체 반환을 위함)
         when(userEntityRepository.findByUserName(username)).thenReturn(Optional.empty()); //비어있는 Optional 을 반환하도록 하고 있음 (empty -> 사용자명이 없는 상태로 가정)
+        when(encoder.encode(password)).thenReturn("encrypt_password");
         when(userEntityRepository.save(any())).thenReturn(fixture); // Fixture 사용하여 UserEntity 반환 ( mock 사용 코드 : thenReturn(Optional.of(mock(UserEntity.class))); )
+
+
 
         Assertions.assertDoesNotThrow(() -> userService.join(username, password));
     }
@@ -71,6 +78,7 @@ public class UserServiceTest {
         // ㄴ> Mock 객체가 특정 입력을 받았을 때 어떤 동작을 수항할지 미리 설정함
         //  ㄴ> 메서드를 호출하면 항상 빈 Optional 을 반환하도록 상황을 가정
         when(userEntityRepository.findByUserName(username)).thenReturn(Optional.of(mock(UserEntity.class))); // 해당 username으로 가입된 유저가 없다는 조건을 테스트 환경에서 미리 가정하는 코드임
+        when(encoder.encode(password)).thenReturn("encrypt_password");
         when(userEntityRepository.save(any())).thenReturn(Optional.of(mock(UserEntity.class)));
         //Mocking 을 통해 -> mock(UserEntity.class) ~ 가짜 UserEntity 객체가 반환됨 ~ 실제 db와는 상관없이 UserEntity의 기능을 시뮬레이션 하는 객체 (실제 객체와 동일한 구조와 타입을 가지고 있으므로, 테스트 코드가 실제 상황과 비슷하게 작동하는지 확인할 수 있음)
 
