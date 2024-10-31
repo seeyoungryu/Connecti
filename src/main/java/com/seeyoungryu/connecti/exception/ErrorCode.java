@@ -10,8 +10,12 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-    DUPLICATE_USER_NAME(HttpStatus.CONFLICT, "user name is duplicated"),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+    DUPLICATE_USER_NAME(HttpStatus.CONFLICT, "User name is duplicated"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not founded"),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "Invalid password"),
+    ;
+
 
     private HttpStatus status; // Spring의 HTTP 상태 코드를 통해 어떤 종류의 에러가 발생했는지 REST API 응답에서 확인할 수 있음
     private String message;

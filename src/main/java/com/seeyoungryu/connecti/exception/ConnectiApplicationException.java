@@ -11,6 +11,14 @@ public class ConnectiApplicationException extends RuntimeException {
     private ErrorCode errorCode;
     private String message;
 
+
+    //에러코드만 반환
+    public ConnectiApplicationException(ErrorCode errorCode) {
+        this.errorCode = errorCode;
+        this.message = null;
+    }
+
+
     @Override
     public String getMessage() {
         if (message == null) {
@@ -18,6 +26,7 @@ public class ConnectiApplicationException extends RuntimeException {
         }
         return String.format("%s, %s", errorCode.name(), message);
     }
+
 
 }
 

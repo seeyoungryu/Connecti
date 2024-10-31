@@ -35,8 +35,8 @@ public class UserService {
         UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, encoder.encode(password)));  //비밀번호를 encode 해서 저장
 
         // 예외를 던지지 않고 User 객체 반환
-        //return User.fromEntity(userEntity);
-        throw new RuntimeException();
+        return User.fromEntity(userEntity);
+        //throw new RuntimeException();  -> 예외처리 로직 테스트용
     }
 
 
@@ -71,14 +71,16 @@ public class UserService {
         UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() -> new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));
 
         //2. 비밀번호 확인
-        if (!userEntity.getPassword().equals(password)) {
-            throw new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, "");
+        //if (!userEntity.getPassword().equals(password)) {           //   *userEntity.getPassword() -> 암호화 된 패스워드임/password -> 암호화 되지 않은 상태임
+        if (!encoder.matches(password, userEntity.getPassword())) {
+            throw new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD);
         }
 
-        //3. 토큰 생성 @Todo
+        //3. 토큰 생성 (Util 만들어서 처리)
         return "";
     }
 }
+
 
 
 
