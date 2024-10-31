@@ -1,8 +1,10 @@
 package com.seeyoungryu.connecti.controller;
 
 import com.seeyoungryu.connecti.controller.request.UserJoinRequest;
+import com.seeyoungryu.connecti.controller.request.UserLoginRequest;
 import com.seeyoungryu.connecti.controller.response.Response;
 import com.seeyoungryu.connecti.controller.response.UserJoinResponse;
+import com.seeyoungryu.connecti.controller.response.UserLoginResponse;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +24,12 @@ public class UserController {
     public Response<UserJoinResponse> join(@RequestBody UserJoinRequest request) {
         User user = userService.join(request.getUserName(), request.getPassword());
         return Response.success(UserJoinResponse.fromUser(user));
-//        UserJoinResponse response = UserJoinResponse.fromUser(user);
-//        return Response.success(response);
+    }
+
+    @PostMapping("/login")
+    public Response<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
+        String token = userService.login(request.getUserName(), request.getPassword());  // -> 토큰 값이 반환됨
+        return Response.success(new UserLoginResponse(token));
     }
 }
 
