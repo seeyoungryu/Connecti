@@ -34,10 +34,31 @@ public class UserService {
         //2. 없으면 -> 회원가입 진행 (user를 DB에 등록)
         UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, encoder.encode(password)));  //비밀번호를 encode 해서 저장
 
-        throw new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, String.format("%s is duplicated", userName));
-        //반환 -> User 객체를 반환하도록 함
+        // 예외를 던지지 않고 User 객체 반환
         //return User.fromEntity(userEntity);
+        throw new RuntimeException();
     }
+
+
+
+        /* @Todo : 추후 주석 제거 필요
+        { throw new RuntimeException(); 관련 }
+
+        1. throw new RuntimeException();
+        : 회원가입 메서드의 예외 상황을 더 잘 테스트하고, 예외 처리 로직을 확실히 이해하기 위한 학습 과정일 가능성 있음
+         RuntimeException을 던짐으로써 일부러 에러 상황을 만들어, 애플리케이션이 이 에러를 어떻게 처리하는지를 보려고 하는듯
+        + 예외가 발생할 때 서비스나 컨트롤러 레이어가 어떤 응답을 반환하는지"를 확인하려는 의도일 수 있음
+
+        2. 리턴문이 없을 때의 동작 방식
+        : User join(...) 메서드의 반환 타입이 void 가 아니고 User라면, 정상적으로 User 객체를 반환해야 함
+        하지만 이 경우, RuntimeException을 던지면 메서드가 정상적으로 종료되지 않고 예외가 발생하며 종료됨
+        따라서, 메서드 내부에서 throw new RuntimeException();이 실행되면 해당 메서드는 즉시 종료되며
+        , 호출한 쪽에서는 User 객체를 반환받지 않고 예외를 받게 됨 -> 리턴문이 필요 없게 되며, 메서드는 예외와 함께 종료
+
+        ( 참고 -> 대신 예외가 던져져 호출한 쪽(예: 컨트롤러)으로 전달됨
+        컨트롤러나 전역 예외 처리 클래스는 이 예외를 받아서 적절한 응답을 사용자에게 반환하도록 처리함.
+        그래서 예외가 발생한 경우에는 반환 타입과 상관없이 호출한 쪽에서 예외를 받는 흐름으로 동작하게 됩
+        */
 
 
     /*
