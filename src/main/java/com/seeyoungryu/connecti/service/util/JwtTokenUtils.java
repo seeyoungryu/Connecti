@@ -19,7 +19,7 @@ public class JwtTokenUtils {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis() + expiredTimeMs))
-                .signWith(getKey(key), SignatureAlgorithm.HS256)  //해시 알고리즘 사용
+                .signWith(getKey(key), SignatureAlgorithm.HS256)  //해시 알고리즘 사용 (참고: JwtTokenUtils 클래스에서 HS256 알고리즘을 사용하는 경우, 비밀 키는 최소 256비트(32바이트) 이상이어야 안전하게 사용할 수 있음)
                 .compact();
     }
 

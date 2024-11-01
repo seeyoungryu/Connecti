@@ -5,7 +5,9 @@ import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
+import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,13 @@ public class UserService {
     private final UserEntityRepository userEntityRepository;
     private final PasswordEncoder encoder; // Bean 받아오기
     // final 필드 -> @RequiredArgsConstructor 붙임
+
+
+    @Value("${jwt.secret-key}")  //application 설정값 자동 주입
+    private String secretKey;
+
+    @Value("${jwt.token.expired-time-ms}")
+    private Long expiredTimeMs;
 
 
     /*
@@ -76,8 +85,11 @@ public class UserService {
             throw new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD);
         }
 
-        //3. 토큰 생성 (Util 만들어서 처리)
-        return "";
+        //3. 토큰 생성 (JWT Util 클래스 사용)
+        return JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
+        
+        //inline 처리 전 -> String token = JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
+        //                return token;
     }
 }
 
