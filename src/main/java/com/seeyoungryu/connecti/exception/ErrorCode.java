@@ -14,6 +14,8 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not founded"),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "Invalid password"),
+    //데이터베이스 에러코드 임시 (PostControllerTest 진행용)
+    DATABASE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "Database error"),
     ;
 
 
