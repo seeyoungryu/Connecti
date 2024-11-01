@@ -3,6 +3,7 @@ package com.seeyoungryu.connecti.model.entity;
 import com.seeyoungryu.connecti.model.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -11,6 +12,7 @@ import java.time.Instant;
 
 
 // UserEntity - JPA 엔티티 클래스
+@NoArgsConstructor
 @Getter
 @Table(name = "users")
 @Entity
@@ -55,6 +57,13 @@ public class UserEntity {
         userEntity.userName = userName;
         userEntity.password = password;
         return userEntity;
+    }
+
+    // 필드 값을 설정하는 생성자 추가
+    public UserEntity(Long id, String userName, String password) {
+        this.id = id;
+        this.userName = userName;
+        this.password = password;
     }
 }
 

@@ -20,16 +20,22 @@ Fixture는 실제 UserEntity와 동일한 속성을 가지며 정상적인 객�
  */
 
 
+//public class UserEntityFixture {
+//    public static UserEntity get(String userName, String password) {
+//
+//        UserEntity result = new UserEntity();
+//        result.setId(1L);
+//        result.setUserName(userName);
+//        result.setPassword(password);
+//
+//
+//        return new UserEntity();
+//    }
+//}
+
+
 public class UserEntityFixture {
-    public static UserEntity get(String userName, String password) {
-
-        UserEntity result = new UserEntity();
-        result.setId(1L);
-        result.setUserName(userName);
-        result.setPassword(password);
-
-
-        return new UserEntity();
+    public static UserEntity get(Long id, String userName, String password) {
+        return new UserEntity(id, userName, password);
     }
 }
-

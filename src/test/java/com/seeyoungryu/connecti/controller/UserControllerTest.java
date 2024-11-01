@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.mock;
@@ -41,6 +42,7 @@ public class UserControllerTest {
     회원가입 테스트 (성공, 실패)
      */
     @Test
+    @WithMockUser
     @DisplayName("회원가입 테스트")
     public void testUserRegistration() throws Exception {
         String userName = "testuser";
@@ -62,6 +64,7 @@ public class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("중복된 사용자명으로 회원가입 시 에러 반환")
     public void testRegistrationWithDuplicateUsernameReturnsError() throws Exception {
         String userName = "testuser";
@@ -69,7 +72,7 @@ public class UserControllerTest {
 
         // * mocking *
         User mockUser = mock(User.class);
-        when(userService.join("testuser", "password")).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));      //@Todo
+        when(userService.join("testuser", "password")).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME));
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,6 +85,7 @@ public class UserControllerTest {
     로그인 테스트 (성공, 에러(미가입, 잘못된 패스워드))
      */
     @Test
+    @WithMockUser
     @DisplayName("로그인 테스트")
     public void testUserLoginSuccess() throws Exception {
         String userName = "testuser";
@@ -91,7 +95,7 @@ public class UserControllerTest {
         User mockUser = mock(User.class);
         when(userService.join("testuser", "password")).thenReturn(mockUser);
 
-        mockMvc.perform(post("/api/v1/users/signIn")
+        mockMvc.perform(post("/api/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password)))
                 ).andDo(print())
@@ -99,6 +103,7 @@ public class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("로그인 테스트(로그인시 회원가입이 되지 않은 userName 입력시 에러 반환)")
     public void testLoginWithUnregisteredUserReturnsError() throws Exception {
         String userName = "testuser";
@@ -106,9 +111,9 @@ public class UserControllerTest {
 
         // * mocking *
         User mockUser = mock(User.class);
-        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));
+        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND));
 
-        mockMvc.perform(post("/api/v1/users/signIn")
+        mockMvc.perform(post("/api/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
                 ).andDo(print())
@@ -116,6 +121,7 @@ public class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("로그인 테스트(로그인시 잘못된 password 입력시 에러 반환)")
     public void testLoginWithIncorrectPasswordReturnsError() throws Exception {
         String userName = "testuser";
@@ -123,9 +129,9 @@ public class UserControllerTest {
 
         // * mocking *
         User mockUser = mock(User.class);
-        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));
+        when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD));
 
-        mockMvc.perform(post("/api/v1/users/signIn")
+        mockMvc.perform(post("/api/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
                 ).andDo(print())
