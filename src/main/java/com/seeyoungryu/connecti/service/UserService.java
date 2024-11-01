@@ -77,7 +77,7 @@ public class UserService {
     public String login(String userName, String password) { //반환값 -> JWT사용할 것이므로 암호화된 문자열을 반환하는 메서드로 처리해야함 * -> String
 
         //1. 회원가입 여부 확인
-        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() -> new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, ""));
+        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, ""));
 
         //2. 비밀번호 확인
         //if (!userEntity.getPassword().equals(password)) {           //   *userEntity.getPassword() -> 암호화 된 패스워드임/password -> 암호화 되지 않은 상태임
@@ -87,7 +87,7 @@ public class UserService {
 
         //3. 토큰 생성 (JWT Util 클래스 사용)
         return JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
-        
+
         //inline 처리 전 -> String token = JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
         //                return token;
     }
