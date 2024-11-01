@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
-import com.seeyoungryu.connecti.model.Post;
+import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.service.PostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,8 +51,8 @@ public class PostControllerTest {
         String title = "Test Title";
         String content = "Test Content";
 
-        Post mockPost = mock(Post.class);
-        when(postService.createPost("Test Title", "Test Content")).thenReturn(mockPost);
+        PostEntity mockPostEntity = mock(PostEntity.class); // PostEntity 객체를 모킹
+        when(postService.createPost("Test Title", "Test Content")).thenReturn(mockPostEntity); // PostEntity 리턴 설정
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -60,6 +60,24 @@ public class PostControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
     }
+
+
+//    @Test
+//    @WithMockUser
+//    @DisplayName("포스트 작성 성공")
+//    public void testCreatePostSuccess() throws Exception {
+//        String title = "Test Title";
+//        String content = "Test Content";
+//
+//        Post mockPost = mock(Post.class);
+//        when(postService.createPost("Test Title", "Test Content")).thenReturn(mockPost);
+//
+//        mockMvc.perform(post("/api/v1/posts")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, content))))
+//                .andDo(print())
+//                .andExpect(status().isOk());
+//    }
 
 
 
