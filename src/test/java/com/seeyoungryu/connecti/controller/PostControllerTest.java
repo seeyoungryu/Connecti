@@ -2,9 +2,9 @@ package com.seeyoungryu.connecti.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
+import com.seeyoungryu.connecti.controller.request.PostModifyRequest;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
-import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.service.PostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,14 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,97 +32,124 @@ public class PostControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    PostService postService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private PostService postService;
-
-
-
-    /*
-        포스트 작성 테스트 (성공)
-     */
-
     @Test
-    @WithMockUser //어노테이션 ~ 로그인 한 유저
+    @WithMockUser
     @DisplayName("포스트 작성 성공")
-    public void testCreatePostSuccess() throws Exception {
-        String title = "Test Title";
-        String body = "Test body";
-
-        PostEntity mockPostEntity = mock(PostEntity.class); // PostEntity 객체를 모킹
-        when(postService.createPost("Test Title", "Test body", "SampleUserName")).thenReturn(mockPostEntity); // PostEntity 리턴 설정
-
+    void createPost_Success() throws Exception {
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
+                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
 
-
-
-    /*
-        포스트 작성 테스트 (실패-로그인 되지 않은 사용자)
-     */
-
     @Test
-    @DisplayName("포스트 작성 실패: 권한 인증되지 않은(로그인 하지 않은) 사용자")
-    @WithAnonymousUser //로그인 안한 유저 ~어노테이션 @Todo : 필터 ? 무슨내용이지
-    public void testCreatePostUnauthorized() throws Exception {
-        String title = "Test Title";
-        String body = "Test body";
-
+    @WithAnonymousUser
+    @DisplayName("로그인하지 않은 상태에서 포스트 작성 시 에러 발생")
+    void createPost_UnauthorizedError() throws Exception {
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
+                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
     }
 
-
-    /*
-       포스트 작성 테스트 (실패-데이터베이스 오류)
-     */
+    @Test
+    @WithAnonymousUser
+    @DisplayName("로그인하지 않은 상태에서 포스트 수정 시 에러 발생")
+    void modifyPost_UnauthorizedError() throws Exception {
+        mockMvc.perform(put("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+    }
 
     @Test
     @WithMockUser
-    @DisplayName("포스트 작성 실패: 데이터베이스 오류")
-    public void testCreatePostDatabaseError() throws Exception {
-        String title = "Test Title";
-        String body = "Test body";
-
-        when(postService.createPost("Test Title", "Test body"))
-                .thenThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR));
-
-        mockMvc.perform(post("/api/v1/posts")
+    @DisplayName("본인이 작성한 글이 아닌 포스트 수정 시 에러 발생")
+    void modifyPost_InvalidPermissionError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
+        mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
     }
-
-
-
-    /*
-    포스트 작성 테스트 (실패-내부 서버 오류)
-  */
 
     @Test
     @WithMockUser
-    @DisplayName("포스트 작성 실패: 내부 서버 오류")
-    public void testCreatePostInternalError() throws Exception {
-        String title = "Test Title";
-        String body = "Test body";
-
-        when(postService.createPost("Test Title", "Test body"))
-                .thenThrow(new ConnectiApplicationException(ErrorCode.INTERNAL_SERVER_ERROR));
-
-        mockMvc.perform(post("/api/v1/posts")
+    @DisplayName("수정하려는 포스트가 없을 경우 에러 발생")
+    void modifyPost_PostNotFoundError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
+        mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("데이터베이스 에러 발생 시 포스트 수정 에러 발생")
+    void modifyPost_DatabaseError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
+        mockMvc.perform(put("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
+    void deletePost_UnauthorizedError() throws Exception {
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
+    void deletePost_InvalidPermissionError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(any(), eq(1L));
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
+    void deletePost_PostNotFoundError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any(), eq(1L));
+
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("데이터베이스 에러 발생 시 포스트 삭제 에러 발생")
+    void deletePost_DatabaseError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).deletePost(any(), eq(1L));
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
     }
 }
