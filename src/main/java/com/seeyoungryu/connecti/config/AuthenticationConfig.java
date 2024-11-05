@@ -1,14 +1,18 @@
 package com.seeyoungryu.connecti.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 //Spring Security 설정 클래스 (접근권한,세션정책 관리)
 @Configuration //스프링의 <설정>파일로 인식하도록 함
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class AuthenticationConfig {
 
     @Bean

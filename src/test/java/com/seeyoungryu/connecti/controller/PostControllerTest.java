@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,22 +38,19 @@ public class PostControllerTest {
 
 
 
-
-
-
     /*
         포스트 작성 테스트 (성공)
      */
 
     @Test
-    @WithMockUser
+    @WithMockUser //어노테이션 ~ 로그인 한 유저
     @DisplayName("포스트 작성 성공")
     public void testCreatePostSuccess() throws Exception {
         String title = "Test Title";
         String body = "Test body";
 
         PostEntity mockPostEntity = mock(PostEntity.class); // PostEntity 객체를 모킹
-        when(postService.createPost("Test Title", "Test body")).thenReturn(mockPostEntity); // PostEntity 리턴 설정
+        when(postService.createPost("Test Title", "Test body", "SampleUserName")).thenReturn(mockPostEntity); // PostEntity 리턴 설정
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -62,32 +60,14 @@ public class PostControllerTest {
     }
 
 
-//    @Test
-//    @WithMockUser
-//    @DisplayName("포스트 작성 성공")
-//    public void testCreatePostSuccess() throws Exception {
-//        String title = "Test Title";
-//        String body = "Test body";
-//
-//        Post mockPost = mock(Post.class);
-//        when(postService.createPost("Test Title", "Test body")).thenReturn(mockPost);
-//
-//        mockMvc.perform(post("/api/v1/posts")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, content))))
-//                .andDo(print())
-//                .andExpect(status().isOk());
-//    }
-
-
-
 
     /*
         포스트 작성 테스트 (실패-로그인 되지 않은 사용자)
      */
 
     @Test
-    @DisplayName("포스트 작성 실패: 인증되지 않은 사용자")
+    @DisplayName("포스트 작성 실패: 권한 인증되지 않은(로그인 하지 않은) 사용자")
+    @WithAnonymousUser //로그인 안한 유저 ~어노테이션 @Todo : 필터 ? 무슨내용이지
     public void testCreatePostUnauthorized() throws Exception {
         String title = "Test Title";
         String body = "Test body";

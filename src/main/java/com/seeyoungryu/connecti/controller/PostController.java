@@ -2,6 +2,7 @@ package com.seeyoungryu.connecti.controller;
 
 import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
 import com.seeyoungryu.connecti.controller.response.PostResponse;
+import com.seeyoungryu.connecti.controller.response.Response;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,9 @@ public class PostController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<PostResponse> createPost(@RequestBody PostCreateRequest request) {
+    public ResponseEntity<void> createPost(@RequestBody PostCreateRequest request) {
         PostEntity post = postService.createPost(request.getTitle(), request.getBody());
-        return ResponseEntity.ok(new PostResponse(post));
+        return Response.success(null);
     }
 
     @GetMapping("/{postId}")
