@@ -30,7 +30,17 @@ public class UserEntity {
     private String password;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.USER;
+
+    /*
+    권장사항: @Enumerated(EnumType.STRING)을 사용하여 문자열로 저장하면 역할(Role)을 직관적으로 확인할 수 있습니다. 따라서 강사 코드처럼 @Enumerated 설정을 추가하는 것이 좋습니다.
+     */
+
+    /*
+    todo : 유저롤에 컬럼 어노테이션 안붙여도 되나?
+     */
+
 
     @Column(name = "registered_at")
     private Timestamp registeredAt;
@@ -52,20 +62,17 @@ public class UserEntity {
     }
 
     //new entity 만들어주는 메소드 추가
-    public static UserEntity of(String userName, String password) {
+    public static UserEntity of(String userName, String encodedPwd) {
         UserEntity userEntity = new UserEntity();
         userEntity.userName = userName;
-        userEntity.password = password;
+        userEntity.password = encodedPwd;
         return userEntity;
     }
-
-    // 필드 값을 설정하는 생성자 추가
-    public UserEntity(Long id, String userName, String password) {
-        this.id = id;
-        this.userName = userName;
-        this.password = password;
-    }
 }
+
+/*
+todo userentity를 만들려고 하는 코드 안에 왜 또 userEntity.setUserName(userName); 이런 코드가 들어가는지..? 이러면 계속 서로를 참조하게 되는거 아닌가?
+ */
 
 
 
