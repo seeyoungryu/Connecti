@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -38,47 +39,43 @@ public class UserControllerTest {
     @MockBean // 테스트에 필요한 userService를 모킹하여 실제 인스턴스가 아닌 테스트용 객체를 주입
     private UserService userService;
 
+
     /*
-    회원가입 테스트 (성공, 실패)
-     */
+    회원가입 테스트 (성공)
+    */
     @Test
-    @WithMockUser
+    @WithAnonymousUser
     @DisplayName("회원가입 테스트")
     public void testUserRegistration() throws Exception {
-        String userName = "testuser";
+        String userName = "name";
         String password = "password";
 
-        // * mocking *
-        //when(userService.join().thenReturn(mock(User.class)) > 불가 (동작이 완료되지 않은 상태에서 메서드 체이닝 방식으로 잘못된 호출을 시도)
-        User mockUser = mock(User.class);
-        //User 클래스의 가짜 객체를 생성해 mockUser로 설정함.
-        when(userService.join("testuser", "password")).thenReturn(mockUser);
-        //when(userService.join()).thenReturn(mockUser);: userService.join()이 호출되면 mockUser를 반환하도록 설정함.
-        //ㄴ> userService.join() 메서드가 호출될 때, 실제로 new User()를 반환하는 것이 아니라 미리 만들어둔 mockUser 객체를 반환하게 되어, 테스트에서 원하는 가짜 동작을 정의할 수 있음.
+        when(userService.join(userName, password)).thenReturn(mock(User.class));
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password))) // : Request body -> .content("{\"userName\": \"" + userName + "\", \"password\": \"" + password + "\"}")
-                ).andDo(print())
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest("name", "password"))))
+                .andDo(print())
                 .andExpect(status().isOk());
     }
 
+
+    /*
+    회원가입 테스트 (실패)
+    */
     @Test
     @WithMockUser
     @DisplayName("중복된 사용자명으로 회원가입 시 에러 반환")
     public void testRegistrationWithDuplicateUsernameReturnsError() throws Exception {
-        String userName = "testuser";
+        String userName = "name";
         String password = "password";
-
-        // * mocking *
-        User mockUser = mock(User.class);
-        when(userService.join("testuser", "password")).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME));
+        when(userService.join(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.DUPLICATED_USER_NAME));
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password))) // : Request body -> .content("{\"userName\": \"" + userName + "\", \"password\": \"" + password + "\"}")
-                ).andDo(print())
-                .andExpect(status().isConflict());
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest("name", "password"))))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.DUPLICATED_USER_NAME.getStatus().value()));
     }
 
     /*
@@ -88,22 +85,21 @@ public class UserControllerTest {
     @WithMockUser
     @DisplayName("로그인 테스트")
     public void testUserLoginSuccess() throws Exception {
-        String userName = "testuser";
+        String userName = "name";
         String password = "password";
 
-        // * mocking *
-        User mockUser = mock(User.class);
-        when(userService.join("testuser", "password")).thenReturn(mockUser);
+        when(userService.login(userName, password)).thenReturn("testToken");
 
         mockMvc.perform(post("/api/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password)))
-                ).andDo(print())
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest("name", "password"))))
+                .andDo(print())
                 .andExpect(status().isOk());
     }
 
+
     @Test
-    @WithMockUser
+    @WithAnonymousUser
     @DisplayName("로그인 테스트(로그인시 회원가입이 되지 않은 userName 입력시 에러 반환)")
     public void testLoginWithUnregisteredUserReturnsError() throws Exception {
         String userName = "testuser";
@@ -121,27 +117,20 @@ public class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithAnonymousUser
     @DisplayName("로그인 테스트(로그인시 잘못된 password 입력시 에러 반환)")
     public void testLoginWithIncorrectPasswordReturnsError() throws Exception {
-        String userName = "testuser";
-        String password = "wrongpassword";
+        String userName = "name";
+        String password = "password";
 
-        // * mocking *
-        User mockUser = mock(User.class);
         when(userService.login(userName, password)).thenThrow(new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD));
 
         mockMvc.perform(post("/api/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
-                ).andDo(print())
-                .andExpect(status().isUnauthorized());
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest("name", "password"))))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.INVALID_PASSWORD.getStatus().value()));
     }
 }
 
 
-/*
-- @AutoConfigureMockMvc 어노테이션 (현재 API 형태의 컨트롤러를 테스트하는 중임)
-: 웹 서버를 띄우지 않고도 컨트롤러의 API를 모의로 테스트할 수 있음-> *MockMvc*를 자동으로 구성하여 요청을 보내고, 그 응답을 검증하는 테스트를 가능하게 함
-- @MockBean: 테스트에 필요한 userService를 모킹하여 실제 인스턴스가 아닌 테스트용 객체를 주입
- */
