@@ -25,15 +25,15 @@ public class User {
     private Timestamp updatedAt;
     private Timestamp deletedAt;
 
-    public static User fromEntity(UserEntity entity) {
+    public static User fromEntity(UserEntity userEntity) {
         return new User(
-                entity.getId(),
-                entity.getUserName(),
-                entity.getPassword(),
-                entity.getRole(),
-                entity.getRegisteredAt(),
-                entity.getUpdatedAt(),
-                entity.getDeletedAt()
+                userEntity.getId(),
+                userEntity.getUserName(),
+                userEntity.getPassword(),
+                userEntity.getRole(),
+                userEntity.getRegisteredAt(),
+                userEntity.getUpdatedAt(),
+                userEntity.getDeletedAt()
         );
     }
 }

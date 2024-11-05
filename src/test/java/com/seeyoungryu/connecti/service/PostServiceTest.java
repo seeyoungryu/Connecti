@@ -29,18 +29,18 @@ public class PostServiceTest {
     @DisplayName("Post 작성 성공")
     void testCreatePostSuccess() {
         String title = "Sample Title";
-        String content = "Sample Content";
+        String body = "Sample body";
 
-        PostEntity mockPost = new PostEntity(title, content);
+        PostEntity mockPost = new PostEntity(title, body);
         when(PostEntityRepository.save(any())).thenReturn(mockPost);
 
-        assertDoesNotThrow(() -> postService.createPost(title, content));
+        assertDoesNotThrow(() -> postService.createPost(title, body));
     }
 
     @Test
     @DisplayName("Post 작성 실패: 제목 또는 본문 누락")
     void testCreatePostFailureDueToInvalidInput() {
-        assertThrows(ConnectiApplicationException.class, () -> postService.createPost(null, "Content"));
+        assertThrows(ConnectiApplicationException.class, () -> postService.createPost(null, "body"));
         assertThrows(ConnectiApplicationException.class, () -> postService.createPost("Title", null));
     }
 
@@ -48,7 +48,7 @@ public class PostServiceTest {
     @DisplayName("Post 조회 성공")
     void testGetPostSuccess() {
         Long postId = 1L;
-        PostEntity mockPost = new PostEntity("Sample Title", "Sample Content");
+        PostEntity mockPost = new PostEntity("Sample Title", "Sample body");
         when(PostEntityRepository.findById(postId)).thenReturn(Optional.of(mockPost));
 
         PostEntity post = postService.getPost(postId);
@@ -69,7 +69,7 @@ public class PostServiceTest {
     @DisplayName("Post 삭제 성공")
     void testDeletePostSuccess() {
         Long postId = 1L;
-        PostEntity mockPost = new PostEntity("Sample Title", "Sample Content");
+        PostEntity mockPost = new PostEntity("Sample Title", "Sample body");
         when(PostEntityRepository.findById(postId)).thenReturn(Optional.of(mockPost));
 
         assertDoesNotThrow(() -> postService.deletePost(postId));

@@ -19,11 +19,11 @@ public class PostService {
     }
 
     @Transactional
-    public PostEntity createPost(String title, String content) {
-        if (title == null || content == null) {
+    public PostEntity createPost(String title, String body) {
+        if (title == null || body == null) {
             throw new ConnectiApplicationException(ErrorCode.INVALID_INPUT_VALUE);
         }
-        return PostEntityRepository.save(PostEntity.of(title, content));
+        return PostEntityRepository.save(PostEntity.of(title, body));
     }
 
     @Transactional(readOnly = true)

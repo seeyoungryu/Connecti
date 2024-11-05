@@ -7,11 +7,11 @@ import lombok.Getter;
 public class PostResponse {
     private final Long id;
     private final String title;
-    private final String content;
+    private final String body;
 
     public PostResponse(PostEntity postEntity) {
         this.id = postEntity.getId();
         this.title = postEntity.getTitle();
-        this.content = postEntity.getContent();
+        this.body = postEntity.getBody();
     }
 }

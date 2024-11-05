@@ -9,8 +9,8 @@ import org.hibernate.annotations.Where;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-@NoArgsConstructor
 @Getter
+@NoArgsConstructor
 @Table(name = "posts")
 @Entity
 @SQLDelete(sql = "UPDATE posts SET deleted_at = NOW() WHERE id = ?")
@@ -24,10 +24,10 @@ public class PostEntity {
     private String title;
 
     @Column(nullable = false)
-    private String content;
+    private String body;
 
-    @Column(name = "created_at", updatable = false)
-    private Timestamp createdAt;
+    @Column(name = "registered_at", updatable = false)
+    private Timestamp registeredAt;
 
     @Column(name = "updated_at")
     private Timestamp updatedAt;
@@ -35,14 +35,14 @@ public class PostEntity {
     @Column(name = "deleted_at")
     private Timestamp deletedAt;
 
-    public PostEntity(String title, String content) {
+    public PostEntity(String title, String body) {
         this.title = title;
-        this.content = content;
+        this.body = body;
     }
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = Timestamp.from(Instant.now());
+        this.registeredAt = Timestamp.from(Instant.now());
     }
 
     @PreUpdate
@@ -50,7 +50,18 @@ public class PostEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static PostEntity of(String title, String content) {
-        return new PostEntity(title, content);
+    //post entity 생성 메서드
+    public static PostEntity of(String title, String body) {
+        PostEntity postEntity = new PostEntity(title, body);
+        postEntity.title = title;
+        postEntity.body = body;
+        return postEntity;
     }
+
+    public PostEntity(Long id, String title, String body) {
+        this.id = id;
+        this.title = title;
+        this.body = body;
+    }
+
 }

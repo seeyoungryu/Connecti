@@ -22,7 +22,7 @@ public class PostController {
 
     @PostMapping("/create")
     public ResponseEntity<PostResponse> createPost(@RequestBody PostCreateRequest request) {
-        PostEntity post = postService.createPost(request.getTitle(), request.getContent());
+        PostEntity post = postService.createPost(request.getTitle(), request.getBody());
         return ResponseEntity.ok(new PostResponse(post));
     }
 

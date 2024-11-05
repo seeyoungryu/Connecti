@@ -49,14 +49,14 @@ public class PostControllerTest {
     @DisplayName("포스트 작성 성공")
     public void testCreatePostSuccess() throws Exception {
         String title = "Test Title";
-        String content = "Test Content";
+        String body = "Test body";
 
         PostEntity mockPostEntity = mock(PostEntity.class); // PostEntity 객체를 모킹
-        when(postService.createPost("Test Title", "Test Content")).thenReturn(mockPostEntity); // PostEntity 리턴 설정
+        when(postService.createPost("Test Title", "Test body")).thenReturn(mockPostEntity); // PostEntity 리턴 설정
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, content))))
+                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -67,10 +67,10 @@ public class PostControllerTest {
 //    @DisplayName("포스트 작성 성공")
 //    public void testCreatePostSuccess() throws Exception {
 //        String title = "Test Title";
-//        String content = "Test Content";
+//        String body = "Test body";
 //
 //        Post mockPost = mock(Post.class);
-//        when(postService.createPost("Test Title", "Test Content")).thenReturn(mockPost);
+//        when(postService.createPost("Test Title", "Test body")).thenReturn(mockPost);
 //
 //        mockMvc.perform(post("/api/v1/posts")
 //                        .contentType(MediaType.APPLICATION_JSON)
@@ -90,11 +90,11 @@ public class PostControllerTest {
     @DisplayName("포스트 작성 실패: 인증되지 않은 사용자")
     public void testCreatePostUnauthorized() throws Exception {
         String title = "Test Title";
-        String content = "Test Content";
+        String body = "Test body";
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, content))))
+                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
@@ -109,14 +109,14 @@ public class PostControllerTest {
     @DisplayName("포스트 작성 실패: 데이터베이스 오류")
     public void testCreatePostDatabaseError() throws Exception {
         String title = "Test Title";
-        String content = "Test Content";
+        String body = "Test body";
 
-        when(postService.createPost("Test Title", "Test Content"))
+        when(postService.createPost("Test Title", "Test body"))
                 .thenThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR));
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, content))))
+                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
     }
@@ -132,14 +132,14 @@ public class PostControllerTest {
     @DisplayName("포스트 작성 실패: 내부 서버 오류")
     public void testCreatePostInternalError() throws Exception {
         String title = "Test Title";
-        String content = "Test Content";
+        String body = "Test body";
 
-        when(postService.createPost("Test Title", "Test Content"))
+        when(postService.createPost("Test Title", "Test body"))
                 .thenThrow(new ConnectiApplicationException(ErrorCode.INTERNAL_SERVER_ERROR));
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, content))))
+                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body))))
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
     }
