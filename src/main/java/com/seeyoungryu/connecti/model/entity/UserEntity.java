@@ -4,6 +4,7 @@ import com.seeyoungryu.connecti.model.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -20,15 +21,19 @@ import java.time.Instant;
 @Where(clause = "deleted_at IS NULL")
 public class UserEntity {
     @Id
+    @Setter
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column
     private String userName;
 
+    @Setter
     @Column
     private String password;
 
+    @Setter
     @Column
     @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.USER;
@@ -42,6 +47,7 @@ public class UserEntity {
      */
 
 
+    @Setter
     @Column(name = "registered_at")
     private Timestamp registeredAt;
 
@@ -52,12 +58,12 @@ public class UserEntity {
     private Timestamp deletedAt;
 
     @PrePersist
-    void onCreate() {
+    void registeredAt() {
         this.registeredAt = Timestamp.from(Instant.now());
     }
 
     @PreUpdate
-    void onUpdate() {
+    void updatedAt() {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 

@@ -1,6 +1,10 @@
 package com.seeyoungryu.connecti.fixture;
 
+import com.seeyoungryu.connecti.model.UserRole;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 
 
 /* < Fixture 클래스 사용 >
@@ -34,8 +38,22 @@ Fixture는 실제 UserEntity와 동일한 속성을 가지며 정상적인 객�
 //}
 
 
+//public class UserEntityFixture {
+//    public static UserEntity get(Long id, String userName, String password) {
+//        return new UserEntity(id, userName, password);
+//    }
+//}
+
 public class UserEntityFixture {
-    public static UserEntity get(Long id, String userName, String password) {
-        return new UserEntity(id, userName, password);
+
+    public static UserEntity get(String userName, String password) {
+        UserEntity entity = new UserEntity();
+        entity.setId(1L);
+        entity.setUserName(userName);
+        entity.setPassword(password);
+        entity.setRole(UserRole.USER);
+        entity.setRegisteredAt(Timestamp.from(Instant.now()));
+        return entity;
     }
 }
+
