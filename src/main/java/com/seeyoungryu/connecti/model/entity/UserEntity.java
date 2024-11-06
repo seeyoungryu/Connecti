@@ -34,18 +34,9 @@ public class UserEntity {
     private String password;
 
     @Setter
-    @Column
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)   //@Enumerated 설정 : UserRole 열거형을 데이터베이스에 문자열로 저장하겠다는 설정 -> 역할(Role)을 직관적으로 확인
     private UserRole role = UserRole.USER;
-
-    /*
-    권장사항: @Enumerated(EnumType.STRING)을 사용하여 문자열로 저장하면 역할(Role)을 직관적으로 확인할 수 있습니다. 따라서 강사 코드처럼 @Enumerated 설정을 추가하는 것이 좋습니다.
-     */
-
-    /*
-    todo : 유저롤에 컬럼 어노테이션 안붙여도 되나?
-     */
-
+    //@Column을 추가하지 않더라도 role 필드는 데이터베이스 컬럼으로 자동으로 매핑됨
 
     @Setter
     @Column(name = "registered_at")
@@ -67,7 +58,8 @@ public class UserEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    //new entity 만들어주는 메소드 추가
+    //of ~ *객체 생성(엔티티 자체)을 위해 사용
+    //서비스 계층 -> 데이터베이스: 엔티티 객체를 생성해 데이터베이스에 저장하는 흐름을 위한 메서드
     public static UserEntity of(String userName, String encodedPwd) {
         UserEntity userEntity = new UserEntity();
         userEntity.userName = userName;
@@ -76,15 +68,8 @@ public class UserEntity {
     }
 }
 
-/*
-todo userentity를 만들려고 하는 코드 안에 왜 또 userEntity.setUserName(userName); 이런 코드가 들어가는지..? 이러면 계속 서로를 참조하게 되는거 아닌가?
- */
 
-
-
-
-
-/* (어노테이션 정리)
+/* 어노테이션 참고
 @Entity: JPA 엔티티로 설정하여, Spring Data JPA가 이 클래스를 통해 데이터베이스 테이블과 상호작용하도록 함
 @Table(name = "users"): 엔티티가 매핑될 데이터베이스 테이블명을 지정
 @SQLDelete: 데이터 삭제 시 실제로는 deleted_at 필드만 업데이트하여 *논리적 삭제를 구현 (소프트 딜리트)

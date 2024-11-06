@@ -11,16 +11,13 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 
-/*
-User.java - 애플리케이션 내 사용자 *모델* 클래스
-역할: UserEntity와 다르게, 비즈니스 로직(서비스 레이어)에서 활용되는 데이터 모델임
-데이터베이스와 연결되지 않으며(디비에 영향 없음), UserEntity의 데이터를 기반으로 사용자 정보를 관리(유저 정보를 가져와서 서비스단에서 처리할 때 사용)
-(UserEnity.java -> DB에 저장~)
- */
+
+// 참고: UserEntity -> 데이터베이스 담당(DB 직접연결) , User -> 서비스 레이어 담당(서비스에서 사용할 정보를 담음)
+
 
 @Getter
 @AllArgsConstructor
-public class User implements UserDetails {
+public class User implements UserDetails {  //UserDetails 구현: Spring Security에서 사용자 정보를 활용할 수 있도록 UserDetails를 구현
 
     private Long id;
     private String userName;
@@ -30,9 +27,13 @@ public class User implements UserDetails {
     private Timestamp updatedAt;
     private Timestamp deletedAt;
 
+
+    // 정적 팩토리 메서드 (사용 -> User.fromEntity)
+    // * 변환 - UserEntity -> User
+    // 데이터베이스 -> 서비스 계층: 엔티티의 데이터를 서비스 레이어에서 사용할 객체에 넣는 작업(서비스 레이어에서 사용하기 위한 데이터 모델을 만듦)
     public static User fromEntity(UserEntity userEntity) {
         return new User(
-                userEntity.getId(),
+                userEntity.getId(),         //서비스에 필요한 필드만 사용
                 userEntity.getUserName(),
                 userEntity.getPassword(),
                 userEntity.getRole(),
@@ -42,8 +43,17 @@ public class User implements UserDetails {
         );
     }
 
+
+    /*
+    getAuthorities 메서드를 오버라이드하여 UserRole에 따라 권한(GrantedAuthority)을 설정
+    ㄴ>  권한 기반의 인증이 필요하다면 getAuthorities 메서드를 통해 권한을 설정하는 것이 유용함
+    -
+    참고 @Override 어노테이션 : User 클래스는 UserDetails 인터페이스를 구현하고 있으므로, UserDetails 인터페이스에 있는 메서드들을 사용하려면
+    User 클래스에서 이 메서드들을 구현하기 위해 @Override를 사용해야함. (ex) 사용자의 권한을 반환하는 getAuthorities(), 사용자 이름을 반환하는 getUsername() 등의 메서드~인터페이스에 이미 정의되어 있음)
+     */
+
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<? extends GrantedAuthority> getAuthorities() {    //getAuthorities: 사용자의 역할을 권한으로 변환하여 Spring Security가 인식할 수 있게 함
         return List.of(new SimpleGrantedAuthority(role.toString()));
     }
 
@@ -52,56 +62,47 @@ public class User implements UserDetails {
         return userName;
     }
 
+
+
+    /*
+    < 계정 상태 메서드 >
+    *User 클래스와 Spring Security와 통합이 필요한 경우* (인증, 권한 관리, 추가적인 계정 상태 관리 등의 기능 사용)
+    -> UserDetails 인터페이스를 구현하고 상태 체크 메서드를 정의하는 것이 좋음
+     */
+
+    /*
+    계정이 만료되지 않았는지를 확인
+    ㄴ> deletedAt 필드를 기준으로 계정의 활성 상태를 판단하도록 설정
+    : deletedAt == null  ->  계정이 만료되지 않음을 의미 ~ true 반환
+      deletedAt이 null이 아닌 경우 -> 계정이 만료된 상태로 간주 ~ false 반환
+     */
     @Override
     public boolean isAccountNonExpired() {
         return deletedAt == null;
     }
 
+    /*
+    계정이 잠겨 있지 않은지를 확인
+     */
     @Override
     public boolean isAccountNonLocked() {
         return deletedAt == null;
     }
 
+    /*
+    자격 증명이 만료되지 않았는지를 확인
+     */
     @Override
     public boolean isCredentialsNonExpired() {
         return deletedAt == null;
     }
 
+    /*
+    계정이 활성 상태인지를 확인
+     */
     @Override
     public boolean isEnabled() {
         return deletedAt == null;
     }
 }
-
-
-/* fromEntity : 정적 팩토리 메서드 (new 키워드 사용x)
-- UserEntity 객체를 받아 그 정보만으 User 객체를 생성하고 반환(new User) -> 엔티티를 서비스 계층에서 활용할 수 있게 함
-*/
-
-/*
-
-UserRole 필드와 권한 관리
-
-내 코드: UserRole 필드는 있지만 권한 관리는 하지 않습니다.
-강사 코드: getAuthorities 메서드를 오버라이드하여 UserRole에 따라 권한(GrantedAuthority)을 설정합니다.
-권장사항: 권한 기반의 인증이 필요하다면 강사 코드처럼 getAuthorities 메서드를 통해 권한을 설정하는 것이 유용합니다.
-
-계정 상태 체크 메서드
-
-내 코드: 계정 만료, 잠금, 비밀번호 만료, 활성화 상태 체크 메서드가 없습니다.
-강사 코드: isAccountNonExpired, isAccountNonLocked, isCredentialsNonExpired, isEnabled 메서드를 통해 계정의 유효성을 체크합니다. removedAt 필드를 사용하여 삭제된 계정을 비활성화합니다.
-권장사항: Spring Security와 통합이 필요한 경우 강사 코드처럼 UserDetails 인터페이스를 구현하고 상태 체크 메서드를 정의하는 것이 좋습니다.
-
-
- */
-
-
-/*
-설명
-UserDetails 구현: Spring Security에서 사용자 정보를 활용할 수 있도록 UserDetails를 구현했습니다.
-getAuthorities: 역할을 권한으로 변환하여 Spring Security가 인식할 수 있게 했습니다.
-계정 상태 메서드: deletedAt 필드를 기준으로 계정의 활성 상태를 판단하도록 설정했습니다.
-이렇게 설정하면, User 클래스는 Spring Security와 통합되어 인증, 권한 관리에 활용될 수 있으며, 추가적인 계정 상태 관리도 가능해집니다.
- */
-
 
