@@ -8,18 +8,20 @@ import com.seeyoungryu.connecti.controller.response.UserLoginResponse;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/users") //컨트롤러의 기본 URL 설정(API 경로를 관리함)
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
+
+    /*
+        Todo 로컬 히스토리 비교하며 수정 확인
+     */
     @PostMapping("/join")
     public Response<UserJoinResponse> join(@RequestBody UserJoinRequest request) {
         User user = userService.join(request.getUserName(), request.getPassword());
@@ -28,10 +30,29 @@ public class UserController {
 
     @PostMapping("/login")
     public Response<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
-        String token = userService.login(request.getUserName(), request.getPassword());  // -> 토큰 값이 반환됨
+        String token = userService.login(request.getUserName(), request.getPassword());
         return Response.success(new UserLoginResponse(token));
     }
+
+    @GetMapping("/me")
+    public Response<UserJoinResponse> me(Authentication authentication) {
+        User user = userService.loadUserByUsername(authentication.getName());
+        return Response.success(UserJoinResponse.fromUser(user));
+    }
 }
+
+
+/*
+요약
+/me 엔드포인트 추가: 강사 코드와 동일하게 @GetMapping("/me")를 추가하여 인증된 사용자 정보를 반환할 수 있습니다.
+필드명 통일: UserJoinRequest에서 사용자명을 가져오는 메서드를 getName()으로 통일했습니다.
+Authentication 객체 활용: me 메서드에서 현재 인증된 사용자의 정보를 가져오기 위해 Authentication 객체를 활용하였습니다.
+이렇게 변경하면 강사 코드와 동일한 구조를 가지게 되며, 사용자 정보 조회 기능도 추가로 제공할 수 있습니다.
+
+profile
+
+ */
+
 
 
 

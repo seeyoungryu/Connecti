@@ -81,6 +81,10 @@ public class PostService {
 
     public void my(String userName, Pageable mock) {
     }
+
+    public PostEntity getPost(Long postId) {
+        return null;
+    }
 }
 
 
