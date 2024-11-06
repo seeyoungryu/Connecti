@@ -1,5 +1,12 @@
 package com.seeyoungryu.connecti.config.filter;
 
+import com.seeyoungryu.connecti.model.User;
+import com.seeyoungryu.connecti.service.UserService;
+import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -8,53 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-//
-//
-//@Slf4j
-//@RequiredArgsConstructor
-//public class JwtTokenFilter extends OncePerRequestFilter {
-//
-//    private final UserService userService;
-//
-//    private final String secretKey;
-//
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request,
-//                                    HttpServletResponse response,
-//                                    FilterChain chain)
-//            throws ServletException, IOException {
-//        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-//        if (!header.startsWith("Bearer ")) {
-//            log.warn("Authorization Header does not start with Bearer");
-//            chain.doFilter(request, response);
-//            return;
-//        }
-//
-//        final String token = header.split(" ")[1].trim();
-//        User userDetails = userService.loadUserByUsername(JwtTokenUtils.getUsername(token, secretKey));
-//
-//        if (!JwtTokenUtils.validate(token, userDetails, secretKey)) {
-//            chain.doFilter(request, response);
-//            return;
-//        }
-//
-//        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-//                userDetails, null,
-//                userDetails.getAuthorities()
-//        );
-//
-//        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        chain.doFilter(request, response);
-//    }
-//
-//}
 
 
 @Slf4j
@@ -115,7 +76,8 @@ Spring Security 설정을 WebSecurityConfigurerAdapter를 상속한 클래스로
 세션 정책: 마찬가지로 SessionCreationPolicy.STATELESS로 세션을 사용하지 않는 방식으로 설정하고 있습니다.
 추가 설정:
 정적 리소스 무시: configure(WebSecurity web) 메서드를 사용해 /favicon.ico, /*.css, /*.js 등의 리소스를 보안 필터에서 제외하고 있습니다.
-추가 허용 경로: /api/*/users/join, /api/*/users/login 경로를 허용하고 있습니다.
+//추가 허용 경로:에이피아아이 * 유저스 조인 에이피아이 * 유저스 로그인 경로를 허용하고 있습니다.
+
 2. JWT 토큰 기반 인증 필터 추가
 사용자 코드 (AuthenticationConfig)
 사용자 코드에서는 JWT 토큰 필터가 구현되어 있지 않습니다. JWT를 통한 인증 및 권한 부여를 위해서는 별도의 필터(JwtTokenFilter 등)를 만들어서 Security 필터 체인에 추가해 주어야 합니다.

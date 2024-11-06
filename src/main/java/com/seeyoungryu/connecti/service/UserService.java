@@ -8,14 +8,16 @@ import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
-public class UserService {
-
+public class UserService implements UserDetailsService {
     private final UserEntityRepository userEntityRepository;
     private final PasswordEncoder encoder; // Bean 받아오기
     // final 필드 -> @RequiredArgsConstructor 붙임
@@ -28,6 +30,13 @@ public class UserService {
     private Long expiredTimeMs;
 
 
+    @Override
+    public User loadUserByUsername(String userName) throws UsernameNotFoundException {
+        return (User) userEntityRepository.findByUserName(userName)
+                .map(User::fromEntity)
+                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("userName: %s", userName)));
+    }
+
     /*
     회원가입
      */
@@ -36,7 +45,7 @@ public class UserService {
         //1. 입력한 username 으로 이미 가입된 user 가 있는지 확인
         //(태스트 코드용 기본 코드 : Optional<UserEntity> userEntity = userEntityRepository.findByUserName(userName);)
         userEntityRepository.findByUserName(userName).ifPresent(it -> {   // * it(userEntity라고 해도 됨): 람다식(parameter -> {code})의 매개변수 이름을 간단히 표현
-            throw new ConnectiApplicationException(ErrorCode.DUPLICATE_USER_NAME, String.format("%s is duplicated", userName));
+            throw new ConnectiApplicationException(ErrorCode.DUPLICATED_USER_NAME, String.format("userName: %s", userName));
         });
 
         //(위에서 throw 가 안되고 넘어오면!)
@@ -73,23 +82,32 @@ public class UserService {
     /*
     로그인
      */
-    @Transactional
-    public String login(String userName, String password) { //반환값 -> JWT사용할 것이므로 암호화된 문자열을 반환하는 메서드로 처리해야함 * -> String
+//    @Transactional
+//    public String login(String userName, String password) { //반환값 -> JWT사용할 것이므로 암호화된 문자열을 반환하는 메서드로 처리해야함 * -> String
+//
+//        //1. 회원가입 여부 확인
+//        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, ""));
+//
+//        //2. 비밀번호 확인
+//        //if (!userEntity.getPassword().equals(password)) {           //   *userEntity.getPassword() -> 암호화 된 패스워드임/password -> 암호화 되지 않은 상태임
+//        if (!encoder.matches(password, userEntity.getPassword())) {
+//            throw new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD);
+//        }
+//
+//        //3. 토큰 생성 (JWT Util 클래스 사용)
+//        return JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
+//
+//        //inline 처리 전 -> String token = JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
+//        //                return token;
+//    }
 
-        //1. 회원가입 여부 확인
-        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, ""));
 
-        //2. 비밀번호 확인
-        //if (!userEntity.getPassword().equals(password)) {           //   *userEntity.getPassword() -> 암호화 된 패스워드임/password -> 암호화 되지 않은 상태임
-        if (!encoder.matches(password, userEntity.getPassword())) {
+    public String login(String userName, String password) {
+        UserDetails userDetails = loadUserByUsername(userName);
+        if (!encoder.matches(password, userDetails.getPassword())) {
             throw new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD);
         }
-
-        //3. 토큰 생성 (JWT Util 클래스 사용)
-        return JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
-
-        //inline 처리 전 -> String token = JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
-        //                return token;
+        return JwtTokenUtils.generateAccessToken(userName, secretKey, expiredTimeMs);
     }
 }
 

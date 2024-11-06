@@ -40,6 +40,7 @@
 
 package com.seeyoungryu.connecti.service.util;
 
+import com.seeyoungryu.connecti.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -108,11 +109,20 @@ public class JwtTokenUtils {
         return expiration.getTime() - new Date().getTime();
     }
 
+    public static String getUsername(String token, String secretKey) {
+        return "";
+    }
+
+    public static boolean validate(String token, User userDetails, String secretKey) {
+        return false;
+    }
+
     public String extractUsername(String token) {
         return "";
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities(String token) {
+        return null;
     }
 }
 
