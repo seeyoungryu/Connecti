@@ -8,8 +8,6 @@ public class TestInfoFixture {
     public static TestInfo get() {
         TestInfo info = new TestInfo();
         info.setPostId(1L);
-        info.setUserName("name");
-        info.setPassword("password");
         info.setTitle("title");
         info.setBody("body");
         return info;

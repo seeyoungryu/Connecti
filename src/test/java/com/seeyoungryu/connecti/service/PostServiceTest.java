@@ -29,30 +29,56 @@ public class PostServiceTest {
     PostService postService;
 
     @MockBean
-    UserEntityRepository userEntityRepository;
+    PostEntityRepository postEntityRepository;
 
     @MockBean
-    PostEntityRepository postEntityRepository;
+    UserEntityRepository userEntityRepository;
+
+
+
+    /*
+   포스트 작성 성공 테스트
+    */
 
     @Test
     @DisplayName("Post 생성 성공")
     void testCreatePostSuccess() {
+
+        String title = "title";
+        String body = "body";
+        String userName = "userName";
+
+
         TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
+
+        //* mocking *
         when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.of(UserEntityFixture.get(fixture.getUserName(), fixture.getPassword())));
+        //fixture 미사용시 코드 = when(userEntityRepository.findByUserName("userName")).thenReturn(Optional.of(new UserEntity("userName", "encodedPassword")));
         when(postEntityRepository.save(any())).thenReturn(mock(PostEntity.class));
+
         Assertions.assertDoesNotThrow(() -> postService.createPost(fixture.getUserName(), fixture.getTitle(), fixture.getBody()));
+        // assertDoesNotThrow - 성공시 에러 스로우 하면 안되므로
     }
 
+
+    /*
+    포스트 실패 - 유저가 존재하지 않는 경우
+     */
     @Test
     @DisplayName("Post 생성 시 유저 미존재 에러 발생")
     void testCreatePostErrorUserNotFound() {
-        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
-        when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.empty());
+        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();   // Todo 이 코드줄의 존재 의미가 뭐임 ..?
+        when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.empty()); //유저 존재하지 않음
         when(postEntityRepository.save(any())).thenReturn(mock(PostEntity.class));
+        
         ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.createPost(fixture.getUserName(), fixture.getTitle(), fixture.getBody()));
         Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
     }
 
+
+    /*
+    조회
+     */
     @Test
     @DisplayName("내 Post 리스트 조회 시 유저 미존재 에러 발생")
     void testFetchMyPostsErrorUserNotFound() {

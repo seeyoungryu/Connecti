@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PostEntityRepository extends JpaRepository<PostEntity, Long> {
+public interface PostEntityRepository extends JpaRepository<PostEntity, Long> {   // id -> Long 타입임
 
 }

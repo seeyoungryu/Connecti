@@ -38,10 +38,18 @@ public class PostControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+
+    /*
+    포스트 작성 성공 테스트
+     */
     @Test
-    @WithMockUser
+    @WithMockUser //인증된 유저
     @DisplayName("포스트 작성 성공")
     void createPost_Success() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body"))))
@@ -49,21 +57,40 @@ public class PostControllerTest {
                 .andExpect(status().isOk());
     }
 
+
+    /*
+    포스트 작성 실패 테스트 (로그인 하지 않은 사용자)
+     */
+
     @Test
-    @WithAnonymousUser
+    @WithAnonymousUser   // 익명의 유저로 요청 ~ 가정 (mocking 을 하지 않아도 됨)
     @DisplayName("로그인하지 않은 상태에서 포스트 작성 시 에러 발생")
     void createPost_UnauthorizedError() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));    // =? status().inUnauthorized()
     }
 
+
+    /*
+
+     */
     @Test
     @WithAnonymousUser
     @DisplayName("로그인하지 않은 상태에서 포스트 수정 시 에러 발생")
     void modifyPost_UnauthorizedError() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+
         mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
@@ -75,6 +102,11 @@ public class PostControllerTest {
     @WithMockUser
     @DisplayName("본인이 작성한 글이 아닌 포스트 수정 시 에러 발생")
     void modifyPost_InvalidPermissionError() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+
         doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
         mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,6 +119,11 @@ public class PostControllerTest {
     @WithMockUser
     @DisplayName("수정하려는 포스트가 없을 경우 에러 발생")
     void modifyPost_PostNotFoundError() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+
         doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
         mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,6 +136,11 @@ public class PostControllerTest {
     @WithMockUser
     @DisplayName("데이터베이스 에러 발생 시 포스트 수정 에러 발생")
     void modifyPost_DatabaseError() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+
         doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
         mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -111,6 +153,11 @@ public class PostControllerTest {
     @WithAnonymousUser
     @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
     void deletePost_UnauthorizedError() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+
         mockMvc.perform(delete("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -121,6 +168,11 @@ public class PostControllerTest {
     @WithMockUser
     @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
     void deletePost_InvalidPermissionError() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+
         doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(any(), eq(1L));
         mockMvc.perform(delete("/api/v1/posts/1")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer token")

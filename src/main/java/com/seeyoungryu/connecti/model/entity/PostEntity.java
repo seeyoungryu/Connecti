@@ -15,7 +15,7 @@ import java.time.Instant;
 @Table(name = "posts")
 @Entity
 @SQLDelete(sql = "UPDATE posts SET deleted_at = NOW() WHERE id = ?")
-@Where(clause = "deleted_at IS NULL")    // @todo: 이 어노테이션이 왜 ~ 소프트 딜리트 되도록?
+@Where(clause = "deleted_at IS NULL")    // @todo: 이 어노테이션이 왜 ~ 소프트 딜리트 기능을 하는지?
 public class PostEntity {
 
 
@@ -28,7 +28,7 @@ public class PostEntity {
     private String title;
 
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT") //타입 변경 ~ 텍스트 타입으로 컬럼이 생성됨
     @Setter
     private String body;
 
@@ -63,6 +63,14 @@ public class PostEntity {
     protected void updatedAt() {
         this.updatedAt = Timestamp.from(Instant.now());
     }
+
+
+    public PostEntity(String title, String body, UserEntity user) {
+        this.title = title;
+        this.body = body;
+        this.user = user;
+    }
+
 
     //post entity 생성 메서드
     public static PostEntity of(String title, String body, UserEntity user) {
