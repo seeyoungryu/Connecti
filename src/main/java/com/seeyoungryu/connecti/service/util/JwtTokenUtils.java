@@ -40,21 +40,35 @@
 
 package com.seeyoungryu.connecti.service.util;
 
+import com.seeyoungryu.connecti.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Collection;
 import java.util.Date;
 
 
 /*
-- 이 유틸 클래스는 Spring Security와 연동되어 사용자 인증과 권한 관리에 사용됨
-- JWT(JSON Web Token)를 생성하고, 검증하며, 필요한 사용자 정보를 추출함
+-Spring Security와 연동
+-'JSON Web Token' 을 생성,검증,사용자 정보를 추출하는 유틸 클래스(인증/권한 관리)
+ */
+
+
+/*
+Todo : 1. 테스트 추가 (단위 테스트를 추가, 특히, JwtTokenUtils의 메서드들이 올바르게 동작하는지 검증하는 테스트가 필요함)
+ㄴ> 현재 JwtUtil 클래스에서 약간 중복된 메서드들이 있고, jwtfilter 와 jwtauthentication 에서는 서비스 클래스에서 쓰는 메서드가 아닌 다른 메서드를 쓰고 있다는건데 이거 문제 생기는거 아닌지 확인 필요함
+
+Todo: 2. 클래스 분리 고려
+JwtTokenUtils 클래스가 토큰 생성, 검증, 정보 추출 등 여러 기능을 제공하다 보니 클래스가 복잡해질 수 있음
+토큰 생성과 관련된 기능을 JwtTokenGenerator로, 토큰 검증과 추출은 JwtTokenValidator 또는 JwtTokenParser로 분리하면 역할이 더 명확해져 관리하기 쉬움
+-> 단일 책임 원칙(SRP)을 따르는 방식
  */
 
 
@@ -70,6 +84,8 @@ public class JwtTokenUtils {
         return doGenerateToken(userName, expiredTimeMs, key);
     }
 
+
+    // RefreshToken
     public static String generateRefreshToken(String userName, String key, long expiredTimeMs) {
         return doGenerateToken(userName, expiredTimeMs, key);
     }
@@ -150,7 +166,25 @@ public class JwtTokenUtils {
         return expiration.getTime() - new Date().getTime();
     }
 
+
+    public static String getUsername(String token, String secretKey) {
+        return "";
+    }
+
+    public static boolean validate(String token, User userDetails, String secretKey) {
+        return false;
+    }
+
+    public String extractUsername(String token) {
+        return "";
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities(String token) {
+        return null;
+    }
 }
+
+
 
 
 /*
