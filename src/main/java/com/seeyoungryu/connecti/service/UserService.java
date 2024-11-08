@@ -34,7 +34,7 @@ public class UserService implements UserDetailsService {
    */
 
     @Override
-    public User loadUserByUsername(String userName) throws UsernameNotFoundException {
+    public User loadUserByUsername(String userName) throws UsernameNotFoundException {  //리턴타입 : User
         return userEntityRepository.findByUserName(userName)  //사용자의 `username`을 기반으로 `User` 정보를 반환
                 .map(User::fromEntity)    //이 메서드가 User 타입을 반환함
                 .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("userName: %s", userName)));

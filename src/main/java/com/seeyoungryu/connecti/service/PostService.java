@@ -30,7 +30,9 @@ public class PostService {
 
         // 2. 게시물 생성(PostEntity 생성) 및 저장 (of:정적 팩토리 메서드)
         PostEntity postEntity = PostEntity.of(title, body, userEntity);
-        postEntityRepository.save(postEntity);
+        postEntityRepository.save(postEntity);  //코드 스타일 다르게 ~객체가 즉시 저장된다는 의미의 느낌으로 -> PostEntity postEntity = postEntityRepository.save(PostEntity.of(title, body, userEntity));
+
+        return;
     }
 
     @Transactional

@@ -65,14 +65,7 @@ public class PostEntity {
     }
 
 
-    public PostEntity(String title, String body, UserEntity user) {
-        this.title = title;
-        this.body = body;
-        this.user = user;
-    }
-
-
-    //post entity 생성 메서드
+    //post entity 생성 메서드 (기타 필드는 자동으로 만들어짐)
     public static PostEntity of(String title, String body, UserEntity user) {
         PostEntity postEntity = new PostEntity();
         postEntity.setTitle(title);
@@ -80,6 +73,14 @@ public class PostEntity {
         postEntity.setUser(user);
         return postEntity;
     }
+
+
+    public PostEntity(String title, String body, UserEntity user) {
+        this.title = title;
+        this.body = body;
+        this.user = user;
+    }
+
 
     public PostEntity(Long id, String title, String body) {
         this.id = id;

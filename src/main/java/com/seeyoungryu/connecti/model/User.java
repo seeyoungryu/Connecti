@@ -53,7 +53,7 @@ public class User implements UserDetails {  //UserDetails 구현: Spring Securit
      */
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {    //getAuthorities: 사용자의 역할을 권한으로 변환하여 Spring Security가 인식할 수 있게 함
+    public Collection<? extends GrantedAuthority> getAuthorities() {    //jwt 토큰 유틸, 필터에서 씀 *getAuthorities: 사용자의 역할을 권한으로 변환하여 Spring Security가 인식할 수 있게 함
         return List.of(new SimpleGrantedAuthority(role.toString()));
     }
 

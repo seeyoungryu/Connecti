@@ -52,14 +52,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 /*
                 2. 토큰 유효성 검사 (토큰이 유효하지 않으면 -> 해당 로그를 남기고 이후 코드는 실행되지 않음)
                  */
-                if (!JwtTokenUtils.validate(token, null, secretKey)) {
-                    log.error("Invalid JWT token");
+                if (!JwtTokenUtils.isTokenExpired(token, secretKey)) {
+                    log.error("Invalid JWT token - secretKey is expired");
                 } else {
-
                     /*
                     3. 사용자 이름 추출 (유효한 토큰일 경우)
                      */
-                    String userName = JwtTokenUtils.getUsername(token, secretKey);
+                    String userName = JwtTokenUtils.getUsernameFromToken(token, secretKey);
 
                     /* 4. 사용자 정보 조회
                           , 유효성 검사 (유효한 사용자라면 SecurityContextHolder에 인증 정보를 설정함)
@@ -73,7 +72,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
                 log.error("Authorization header format is invalid: {}", header);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 log.error("Error while processing JWT token", e);
             }
         }

@@ -40,13 +40,11 @@
 
 package com.seeyoungryu.connecti.service.util;
 
-import com.seeyoungryu.connecti.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -81,49 +79,38 @@ public class JwtTokenUtils {
      */
 
     public static String generateAccessToken(String userName, String key, long expiredTimeMs) {
-        return doGenerateToken(userName, expiredTimeMs, key);
+        return generateToken(userName, expiredTimeMs, key);
     }
 
 
     // RefreshToken
     public static String generateRefreshToken(String userName, String key, long expiredTimeMs) {
-        return doGenerateToken(userName, expiredTimeMs, key);
+        return generateToken(userName, expiredTimeMs, key);
     }
 
     //생성시 호출되는 메서드
-    //이 메서드에서 Claims에 사용자 이름을 담고 서명합니다. (Claims :  JWT의 Payload에 담길 정보임, 여기서는 username을 넣는다)
-    private static String doGenerateToken(String userName, long expireTime, String key) {
+    //이 메서드에서 Claims에 사용자 이름을 담고 서명함 (Claims :  JWT의 Payload에 담길 정보임, 여기서는 username을 넣는다)
+    private static String generateToken(String userName, long expireTime, String key) {
         Claims claims = Jwts.claims();
         claims.put("username", userName);
 
-        return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expireTime))
-                .signWith(getSigningKey(key), SignatureAlgorithm.HS256)
-                .compact();
+        return Jwts.builder() // JWT 생성 시작
+                .setClaims(claims) // JWT에 담을 사용자 정보(Claims)를 설정
+                .setIssuedAt(new Date(System.currentTimeMillis())) // JWT 발급 시각 설정
+                .setExpiration(new Date(System.currentTimeMillis() + expireTime)) // JWT 만료 시각 설정
+                .signWith(getKey(key), SignatureAlgorithm.HS256) // 비밀 키와 서명 알고리즘(HS256)으로 서명하여 보안 강화
+                .compact(); // JWT를 문자열 형태로 변환하여 반환
     }
 
 
 
     /*
-    JWT 토큰 유효성 검증
+    JWT 토큰 만료 여부 확인 (유효성 검증)
      */
 
-    public static Boolean validateToken(String token, UserDetails userDetails, String key) {
-        String username = getUsernameFromToken(token, key);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token, key);
-    }
-
-
-
-    /*
-    JWT 토큰 만료 여부 확인
-     */
-
-    private static Boolean isTokenExpired(String token, String key) {
-        Date expiration = extractAllClaims(token, key).getExpiration();
-        return expiration.before(new Date());
+    public static Boolean isTokenExpired(String token, String key) {
+        Date expiredDate = extractClaims(token, key).getExpiration();
+        return expiredDate.before(new Date());    //현재시각보다 expiredDate 가 이전인지 확인 (new Date() -> 현재시각)
     }
 
 
@@ -132,12 +119,12 @@ public class JwtTokenUtils {
     :토큰에서 모든 클레임을 추출함(토큰이 유효한지 확인하고 정보를 읽을 때 필요)
      */
 
-    public static Claims extractAllClaims(String token, String key) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey(key))
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public static Claims extractClaims(String token, String key) {
+        return Jwts.parserBuilder() // JWT 해석을 준비하는 단계 (파서 생성)
+                .setSigningKey(getKey(key)) // 비밀키를 설정하여 JWT의 신뢰성을 확인
+                .build() // 파서를 완성 ~ 파서 사용할 준비 완료시킴
+                .parseClaimsJws(token) // JWT 토큰을 해석하여 안에 있는 정보와 유효성 검사
+                .getBody(); // JWT의 실제 데이터(Claims)를 추출하여 반환
     }
 
 
@@ -145,14 +132,14 @@ public class JwtTokenUtils {
     토큰에서 사용자 이름 추출
      */
     public static String getUsernameFromToken(String token, String key) {
-        return extractAllClaims(token, key).get("username", String.class);
+        return extractClaims(token, key).get("username", String.class);
     }
 
 
     /*
     토큰의 서명 키 변환 (문자열key -> Key 객체로 변환하여 반환)
      */
-    private static Key getSigningKey(String key) {
+    private static Key getKey(String key) {
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -162,18 +149,10 @@ public class JwtTokenUtils {
     JWT 토큰 잔여시간 조회
      */
     public static long getRemainingTime(String token, String key) {
-        Date expiration = extractAllClaims(token, key).getExpiration();
+        Date expiration = extractClaims(token, key).getExpiration();
         return expiration.getTime() - new Date().getTime();
     }
 
-
-    public static String getUsername(String token, String secretKey) {
-        return "";
-    }
-
-    public static boolean validate(String token, User userDetails, String secretKey) {
-        return false;
-    }
 
     public String extractUsername(String token) {
         return "";
