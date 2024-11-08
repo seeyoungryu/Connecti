@@ -1,18 +1,18 @@
 package com.seeyoungryu.connecti.config;
 
 import com.seeyoungryu.connecti.config.filter.JwtTokenFilter;
-import com.seeyoungryu.connecti.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,16 +22,22 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserService userService;
+    // @Lazy -> UserService 주입을 지연시킴  // Todo  lazy로 확인 안되는 이유?
+    // private final UserService userService;
+    @Lazy
+    private final UserDetailsService userDetailsService; // `UserService` 대신 `UserDetailsService`로 변경하여 순환 참조 방지
+
 
     @Value("${jwt.secret-key}")
     private String secretKey;
 
+    // JwtTokenFilter 빈 생성
     @Bean
     public JwtTokenFilter jwtTokenFilter() {
-        return new JwtTokenFilter(userService, secretKey);
+        return new JwtTokenFilter(userDetailsService, secretKey); // UserDetailsService 주입
     }
 
+    // 보안 설정 구성
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -41,7 +47,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  //세션 사용 안함
                 )
                 .addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -58,8 +64,10 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // UserService를 AuthenticationManager에 연결 (필요시 추가)
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
-    }
+    // * UserService를 AuthenticationManager에 연결 하는 코드 -> AuthenticationManager 설정 제거로 순환 참조 해결
+    // protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    // auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    //    }
+
 }
+

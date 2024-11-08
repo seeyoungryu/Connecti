@@ -31,6 +31,11 @@ public class UserService implements UserDetailsService {
 
   /* loadUserByUsername(String userName) 메서드 - (UserDetailsService 인터페이스의 loadUserByUsername 메서드를 구현함)
     Spring Security가 사용자를 '인증'할 때 호출하여 사용자 정보를 로드함 (사용자의 `username`을 기반으로 `User` 정보를 조회하여 반환)
+
+   Todo
+   Spring Security는 UserDetailsService를 직접 사용하는 대신 ,
+   이 인터페이스를 구현하는 커스텀 UserService 클래스에서 loadUserByUsername 메서드를 오버라이드하여 사용자 정보를 반환하도록 설정할 수 있음
+   -> 현재 사용 중인 UserService 클래스가 UserDetailsService를 구현하고 있으므로, 이 클래스에 loadUserByUsername 메서드를  Todo 오버라이드하면 됨 (개념 다시 체크)
    */
 
     @Override
