@@ -13,16 +13,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
+@Component // 필터 클래스를 빈으로 등록 (스프링이 자동으로 필터 관리하도록 설정함)
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    //    private final UserService userService;
     private final UserDetailsService userDetailsService; // UserService 대신 UserDetailsService 주입
+
     private final String secretKey;
 
 
@@ -48,13 +50,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                  /*
                  1. 토큰 추출 ("Bearer " 이후의 토큰을 추출)
                   */
-                final String token = header.split(" ")[1].trim();
+                // final String token = header.split(" ")[1].trim();
+                // ㄴ> 수정: Bearer 이후의 토큰만 추출
+                final String token = header.substring(7).trim();
 
                 /*
                 2. 토큰 유효성 검사 (토큰이 유효하지 않으면 -> 해당 로그를 남기고 이후 코드는 실행되지 않음)
                  */
-                if (!JwtTokenUtils.isTokenExpired(token, secretKey)) {
-                    log.error("Invalid JWT token - secretKey is expired");
+                // if (!JwtTokenUtils.isTokenExpired(token, secretKey)) {
+                // ㄴ> 수정: 조건  JwtTokenUtils.isTokenExpired() 이 true일 때 토큰 만료로 간주
+                if (JwtTokenUtils.isTokenExpired(token, secretKey)) {
+                    log.error("JWT token is expired");
                 } else {
                     /*
                     3. 사용자 이름 추출 (유효한 토큰일 경우)
@@ -64,10 +70,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                     /* 4. 사용자 정보 조회
                           , 유효성 검사 (유효한 사용자라면 SecurityContextHolder에 인증 정보를 설정함)
                      */
-
-                    //User userDetails = user.loadUserByUsername(userName);
                     UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
-
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -80,7 +83,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             }
         }
 
-        // 마지막에 한 번만 필터 체인 호출 ( " SINGLE EXIT STYLE " )
+        // 마지막에 한 번만 필터 체인 호출(실행) ( " SINGLE EXIT STYLE " )
         filterChain.doFilter(request, response);
     }
 }

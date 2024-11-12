@@ -25,7 +25,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<Response<Void>> createPost(@RequestBody PostCreateRequest request, Authentication authentication) { // Todo 앞에서 context 했던 정보를 넣어줄 수 있다가 뭔소리?
         // 인증된 사용자의 이름으로 포스트 작성
-        postService.createPost(authentication.getName(), request.getTitle(), request.getBody());
+        postService.createPost(request.getTitle(), request.getBody(), authentication.getName());
         return ResponseEntity.ok(Response.success(null));
     }
 
