@@ -7,7 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-
+// AuthenticationManager , BCryptPasswordEncoder 같은 <<인증 관련 설정>>만 독립적으로 관리
 
 /*
 순환참조 fix - 수정 내역 (설정값 분리)

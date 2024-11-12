@@ -13,6 +13,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
+//보안 필터 및 HTTP 보안 설정
+
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
