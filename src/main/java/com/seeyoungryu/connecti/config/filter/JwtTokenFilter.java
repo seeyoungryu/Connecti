@@ -87,9 +87,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 
 /*
-<순환참조 해결> -> UserService 대신 UserDetailsService 주입
+<순환참조 관련> -> UserService 대신 UserDetailsService 주입
 UserDetailsService는 UserService가 구현하는 인터페이스이므로 기존 로직에 영향을 주지 않으면서도 순환 참조 문제를 해결
-UserDetailsService의 loadUserByUsername 메서드는 사용자 인증을 위한 표준 인터페이스를 제공하므로,
-이 인터페이스를 구현한 UserService가 UserDetails 타입의 사용자 정보를 반환하게 설정하면 자연스럽게 Spring Security와 호환됨
-(UserDetails의 인터페이스 구현을 이용해 필요한 메서드(getUsername, getPassword, getAuthorities) 호출 가능)
+UserDetailsService의 loadUserByUsername 메서드 -> 사용자 인증을 위한 표준 인터페이스를 제공함.
+해당 인터페이스를 구현한 UserService가 UserDetails 타입의 사용자 정보를 반환하게 설정하면 자연스럽게 Spring Security와 호환됨
+(UserDetails의 인터페이스 ~ getUsername, getPassword, getAuthorities 등 호출 가능)
  */

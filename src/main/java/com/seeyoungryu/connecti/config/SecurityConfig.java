@@ -1,4 +1,3 @@
-// SecurityConfig.java
 package com.seeyoungryu.connecti.config;
 
 import com.seeyoungryu.connecti.config.filter.JwtTokenFilter;
@@ -6,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -20,8 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Lazy
-    private final UserDetailsService userDetailsService; // 순환 참조 방지
+    private final UserDetailsService userDetailsService;
+
     @Value("${jwt.secret-key}")
     private String secretKey;
 
@@ -32,7 +30,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable) // 권장되는 방식으로 변경
+        http.csrf(AbstractHttpConfigurer::disable) // 최근 권장 방식으로 변경 (+ 람다 -> 참조형)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/users/login", "/api/v1/users/join").permitAll()
                         .anyRequest().authenticated()
@@ -49,8 +47,6 @@ public class SecurityConfig {
 
 
 /*
-설명
-AuthenticationConfig: BCryptPasswordEncoder 및 AuthenticationManager를 빈으로 정의
-SecurityConfig: JWT 및 보안 설정을 담당하며, JwtTokenFilter를 설정하고 세션을 사용하지 않도록 구성
-UserService: 순환 참조 방지를 위해 PasswordEncoder에 @Lazy를 적용
+순환참조 fix - 수정 내역 (설정값 분리)
+SecurityConfig 애서는 JWT 및 보안 설정,JwtTokenFilter 설정
  */

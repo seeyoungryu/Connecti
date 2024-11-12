@@ -16,16 +16,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@RequiredArgsConstructor //final 필드
+@RequiredArgsConstructor //final
 @Service
 public class UserService implements UserDetailsService {
-    private final UserEntityRepository userEntityRepository;
 
+    private final UserEntityRepository userEntityRepository;
 
     @Lazy
     private final PasswordEncoder encoder; // Bean 받아오기
 
-    @Value("${jwt.secret-key}")  //  @Value : application 설정값 자동 주입
+    @Value("${jwt.secret-key}")  //application 설정값 자동 주입
     private String secretKey;
 
     @Value("${jwt.token.expired-time-ms}")
@@ -88,74 +88,3 @@ public class UserService implements UserDetailsService {
 
 
 
-
-
-
-
-//// UserService.java
-//package com.seeyoungryu.connecti.service;
-//
-//import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
-//import com.seeyoungryu.connecti.exception.ErrorCode;
-//import com.seeyoungryu.connecti.model.User;
-//import com.seeyoungryu.connecti.model.entity.UserEntity;
-//import com.seeyoungryu.connecti.repository.UserEntityRepository;
-//import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.security.core.userdetails.UserDetailsService;
-//import org.springframework.security.core.userdetails.UsernameNotFoundException;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.stereotype.Service;
-//import org.springframework.transaction.annotation.Transactional;
-//
-//@RequiredArgsConstructor
-//@Service
-//public class UserService implements UserDetailsService {
-//    private final UserEntityRepository userEntityRepository;
-//
-//    //    @Lazy  // 지연 로딩
-//    private final PasswordEncoder encoder;
-//
-//    @Value("${jwt.secret-key}")
-//    private String secretKey;
-//
-//    @Value("${jwt.token.expired-time-ms}")
-//    private Long expiredTimeMs;
-//
-//    @Override
-//    public User loadUserByUsername(String userName) throws UsernameNotFoundException {
-//        return userEntityRepository.findByUserName(userName)
-//                .map(User::fromEntity)
-//                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("userName: %s", userName)));
-//    }
-//
-//    @Transactional
-//    public User join(String userName, String password) {
-//        userEntityRepository.findByUserName(userName).ifPresent(it -> {
-//            throw new ConnectiApplicationException(ErrorCode.DUPLICATED_USER_NAME, String.format("userName: %s", userName));
-//        });
-//
-//        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, encoder.encode(password)));
-//        return User.fromEntity(userEntity);
-//    }
-//
-//    @Transactional
-//    public String login(String userName, String password) {
-//        UserDetails userDetails = loadUserByUsername(userName);
-//        if (!encoder.matches(password, userDetails.getPassword())) {
-//            throw new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD);
-//        }
-//        return JwtTokenUtils.generateAccessToken(userName, secretKey, expiredTimeMs);
-//    }
-//}
-//
-//
-//
-/// *
-//설명
-//AuthenticationConfig: BCryptPasswordEncoder 및 AuthenticationManager를 빈으로 정의
-//SecurityConfig: JWT 및 보안 설정을 담당하며, JwtTokenFilter를 설정하고 세션을 사용하지 않도록 구성
-//UserService: 순환 참조 방지를 위해 PasswordEncoder에 @Lazy를 적용
-// */
