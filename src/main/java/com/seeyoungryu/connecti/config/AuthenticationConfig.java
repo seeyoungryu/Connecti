@@ -1,3 +1,6 @@
+//Todo AuthenticationConfig 에서 jwt 를 다루는게 일반적인가? 확인하고 코드 변경필요시 변경하기
+
+
 package com.seeyoungryu.connecti.config;
 
 import lombok.RequiredArgsConstructor;
