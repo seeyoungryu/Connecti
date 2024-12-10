@@ -80,7 +80,7 @@ public class PostControllerTest {
 
 
     /*
-
+    포스트 수정 실패 테스트(로그인하지 않은 상태)
      */
     @Test
     @WithAnonymousUser
@@ -98,6 +98,10 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
     }
 
+
+    /*
+    포스트 수정 실패 테스트(유효하지 않은 사용자)
+     */
     @Test
     @WithMockUser
     @DisplayName("본인이 작성한 글이 아닌 포스트 수정 시 에러 발생")
@@ -115,6 +119,9 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
     }
 
+    /*
+    포스트 수정 실패(존재하지 않는 포스트)
+     */
     @Test
     @WithMockUser
     @DisplayName("수정하려는 포스트가 없을 경우 에러 발생")
@@ -132,6 +139,10 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
     }
 
+
+    /*
+    수정 - DB 에러 테스트 (임시)
+     */
     @Test
     @WithMockUser
     @DisplayName("데이터베이스 에러 발생 시 포스트 수정 에러 발생")
@@ -149,6 +160,9 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
     }
 
+    /*
+    포스트 삭제 실패 테스트(로그인하지 않은 사용자)
+     */
     @Test
     @WithAnonymousUser
     @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
@@ -164,6 +178,9 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
     }
 
+    /*
+    포스트 삭제 실패 테스트(권한이 없는 사용자)
+     */
     @Test
     @WithMockUser
     @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
@@ -181,6 +198,9 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
     }
 
+    /*
+    포스트 삭제 실패(존재하지 않는 포스트)
+     */
     @Test
     @WithMockUser
     @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
@@ -194,6 +214,9 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
     }
 
+    /*
+    삭제 - DB 에러 테스트 (임시)
+     */
     @Test
     @WithMockUser
     @DisplayName("데이터베이스 에러 발생 시 포스트 삭제 에러 발생")
