@@ -1,6 +1,3 @@
-//Todo AuthenticationConfig 에서 jwt 를 다루는게 일반적인가? 확인하고 코드 변경필요시 변경하기
-
-
 package com.seeyoungryu.connecti.config;
 
 import lombok.RequiredArgsConstructor;
@@ -37,20 +34,6 @@ public class AuthenticationConfig {
 }
 
 
-
-
-
-/* (참고)
-AuthenticationConfiguration은 Spring Security에서 제공하는 클래스 (Spring Security가 AuthenticationManager를 자동으로 구성할 수 있도록 돕는 역할)
-- AuthenticationManager를 생성하고 설정하는 데 필요한 구성 요소를 제공 (이 클래스는 Spring Security가 AuthenticationManager를 생성하고 설정을 위한 여러 기능을 제공합니다.)
-Spring Security 설정에서 AuthenticationManager를 빈으로 직접 정의하기 위해
-AuthenticationConfiguration을 의존성으로 주입하여 getAuthenticationManager() 메서드를 호출하는 방식으로 AuthenticationManager 빈을 생성
-
-
-authenticationConfiguration.getAuthenticationManager():
-AuthenticationConfiguration 객체의 getAuthenticationManager() 메서드 ~ AuthenticationManager 빈을 생성
--> 커스텀 AuthenticationManager를 정의하지 않고 Spring Security의 기본 AuthenticationManager 구성을 사용할 수 있음
- */
 
 
 /*

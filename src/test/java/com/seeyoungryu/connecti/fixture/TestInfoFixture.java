@@ -13,6 +13,7 @@ public class TestInfoFixture {
         return info;
     }
 
+
     @Data
     public static class TestInfo {
         private Long postId;
