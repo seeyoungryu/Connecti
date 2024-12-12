@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,13 +21,12 @@ import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component // 필터 클래스를 빈으로 등록 (스프링이 자동으로 필터 관리하도록 설정함)
+@Component
 public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService; // UserService 대신 UserDetailsService 주입
-
-    private final String secretKey;
-
+    @Value("${jwt.secret-key}")
+    private String secretKey;
 
      /*
         1. 토큰 추출
@@ -34,7 +34,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         3. 토큰에서 사용자 이름 추출
         4. 사용자 이름이 유효한지 검사 (이 때, 해당 사용자 정보를 로드하고 인증 처리)
          */
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -70,7 +69,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                     /* 4. 사용자 정보 조회
                           , 유효성 검사 (유효한 사용자라면 SecurityContextHolder에 인증 정보를 설정함)
                      */
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(userName);   //사용자 인증을 위한 표준 인터페이스를 제공
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -88,11 +87,3 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 }
 
-
-/*
-<순환참조 관련> -> UserService 대신 UserDetailsService 주입
-UserDetailsService는 UserService가 구현하는 인터페이스이므로 기존 로직에 영향을 주지 않으면서도 순환 참조 문제를 해결
-UserDetailsService의 loadUserByUsername 메서드 -> 사용자 인증을 위한 표준 인터페이스를 제공함.
-해당 인터페이스를 구현한 UserService가 UserDetails 타입의 사용자 정보를 반환하게 설정하면 자연스럽게 Spring Security와 호환됨
-(UserDetails의 인터페이스 ~ getUsername, getPassword, getAuthorities 등 호출 가능)
- */
