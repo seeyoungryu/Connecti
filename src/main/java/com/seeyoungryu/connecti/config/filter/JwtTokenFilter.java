@@ -29,10 +29,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private String secretKey;
 
      /*
-        1. 토큰 추출
-        2. 토큰 유효성 검사(유효하지 않으면 바로 종료)
-        3. 토큰에서 사용자 이름 추출
-        4. 사용자 이름이 유효한지 검사 (이 때, 해당 사용자 정보를 로드하고 인증 처리)
+       - 토큰 추출 -> 유효성 검사(유효하지 않으면 바로 종료)
+       - 토큰에서 사용자 이름 추출 -> 사용자 이름이 유효한지 검사 (이 때 해당 사용자 정보를 로드하고 인증 처리)
          */
 
     @Override
