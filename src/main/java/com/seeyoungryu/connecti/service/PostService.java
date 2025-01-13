@@ -8,7 +8,6 @@ import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,21 +35,14 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(Long postId) {
+    public void modify(String title, String body, String userName, Long postId) {
+        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() ->
+                new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("username %s not found", userName)));
 
-    }
+        //@todo 1. post 존재여부 확인 -> 존재하지 않는다는 exeption 던져야함
+        //@todo 2. 포스트 permission (수정자와 작성자와 동일한지) 확인 ~ 해야함 -> 퍼미션이 유효하지 않다는 에러 던져야함
 
-    public void deletePost(String userName, Long postId) {
-    }
 
-    public void modify(String userName, Long postId, String title, String body) {
-    }
-
-    public void my(String userName, Pageable mock) {
-    }
-
-    public PostEntity getPost(Long postId) {
-        return null;
     }
 }
 

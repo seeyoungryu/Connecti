@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -21,7 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,12 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class PostControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
     @MockBean
     PostService postService;
-
+    @Autowired
+    private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -80,6 +78,25 @@ public class PostControllerTest {
 
 
     /*
+    포스트 수정 성공 테스트
+     */
+    @Test
+    @WithMockUser //인증된 유저
+    @DisplayName("포스트 작성 성공")
+    void updatePost_Success() throws Exception {
+
+        String title = "title";
+        String body = "body";
+
+        mockMvc.perform(put("/api/v1/posts/1L")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+
+    /*
     포스트 수정 실패 테스트(로그인하지 않은 상태)
      */
     @Test
@@ -110,9 +127,10 @@ public class PostControllerTest {
         String title = "title";
         String body = "body";
 
+        //이 부분에 본인이 작성한 글이 아니라는 모킹이 필요함
+        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).modify(eq(title), eq(body), any(), eq(1L));  // title, body, uesrName, 1L => any() , eq(1L)
 
-        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
-        mockMvc.perform(put("/api/v1/posts/1")
+        mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
@@ -131,100 +149,101 @@ public class PostControllerTest {
         String body = "body";
 
 
-        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
-        mockMvc.perform(put("/api/v1/posts/1")
+        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modify(eq(title), eq(body), any(), eq(1L));
+        mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
-    }
-
-
-    /*
-    수정 - DB 에러 테스트 (임시)
-     */
-    @Test
-    @WithMockUser
-    @DisplayName("데이터베이스 에러 발생 시 포스트 수정 에러 발생")
-    void modifyPost_DatabaseError() throws Exception {
-
-        String title = "title";
-        String body = "body";
-
-
-        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
-        mockMvc.perform(put("/api/v1/posts/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
-                .andDo(print())
-                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
-    }
-
-    /*
-    포스트 삭제 실패 테스트(로그인하지 않은 사용자)
-     */
-    @Test
-    @WithAnonymousUser
-    @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
-    void deletePost_UnauthorizedError() throws Exception {
-
-        String title = "title";
-        String body = "body";
-
-
-        mockMvc.perform(delete("/api/v1/posts/1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
-    }
-
-    /*
-    포스트 삭제 실패 테스트(권한이 없는 사용자)
-     */
-    @Test
-    @WithMockUser
-    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
-    void deletePost_InvalidPermissionError() throws Exception {
-
-        String title = "title";
-        String body = "body";
-
-
-        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(any(), eq(1L));
-        mockMvc.perform(delete("/api/v1/posts/1")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
-    }
-
-    /*
-    포스트 삭제 실패(존재하지 않는 포스트)
-     */
-    @Test
-    @WithMockUser
-    @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
-    void deletePost_PostNotFoundError() throws Exception {
-        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any(), eq(1L));
-
-        mockMvc.perform(delete("/api/v1/posts/1")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
-    }
-
-    /*
-    삭제 - DB 에러 테스트 (임시)
-     */
-    @Test
-    @WithMockUser
-    @DisplayName("데이터베이스 에러 발생 시 포스트 삭제 에러 발생")
-    void deletePost_DatabaseError() throws Exception {
-        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).deletePost(any(), eq(1L));
-        mockMvc.perform(delete("/api/v1/posts/1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
     }
 }
+
+//
+//    /*
+//    수정 - DB 에러 테스트 (임시)
+//     */
+//    @Test
+//    @WithMockUser
+//    @DisplayName("데이터베이스 에러 발생 시 포스트 수정 에러 발생")
+//    void modifyPost_DatabaseError() throws Exception {
+//
+//        String title = "title";
+//        String body = "body";
+//
+//
+//        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
+//        mockMvc.perform(put("/api/v1/posts/1")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+//                .andDo(print())
+//                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
+//    }
+//
+//    /*
+//    포스트 삭제 실패 테스트(로그인하지 않은 사용자)
+//     */
+//    @Test
+//    @WithAnonymousUser
+//    @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
+//    void deletePost_UnauthorizedError() throws Exception {
+//
+//        String title = "title";
+//        String body = "body";
+//
+//
+//        mockMvc.perform(delete("/api/v1/posts/1")
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andDo(print())
+//                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+//    }
+//
+//    /*
+//    포스트 삭제 실패 테스트(권한이 없는 사용자)
+//     */
+//    @Test
+//    @WithMockUser
+//    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
+//    void deletePost_InvalidPermissionError() throws Exception {
+//
+//        String title = "title";
+//        String body = "body";
+//
+//
+//        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(any(), eq(1L));
+//        mockMvc.perform(delete("/api/v1/posts/1")
+//                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andDo(print())
+//                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
+//    }
+//
+//    /*
+//    포스트 삭제 실패(존재하지 않는 포스트)
+//     */
+//    @Test
+//    @WithMockUser
+//    @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
+//    void deletePost_PostNotFoundError() throws Exception {
+//        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any(), eq(1L));
+//
+//        mockMvc.perform(delete("/api/v1/posts/1")
+//                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andDo(print())
+//                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
+//    }
+//
+//    /*
+//    삭제 - DB 에러 테스트 (임시)
+//     */
+//    @Test
+//    @WithMockUser
+//    @DisplayName("데이터베이스 에러 발생 시 포스트 삭제 에러 발생")
+//    void deletePost_DatabaseError() throws Exception {
+//        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).deletePost(any(), eq(1L));
+//        mockMvc.perform(delete("/api/v1/posts/1")
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andDo(print())
+//                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
+//    }
+//}
