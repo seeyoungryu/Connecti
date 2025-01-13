@@ -14,6 +14,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Table(name = "posts")
 @Entity
+@Setter
 @SQLDelete(sql = "UPDATE posts SET deleted_at = NOW() WHERE id = ?")
 @Where(clause = "deleted_at IS NULL")    // @todo: 이 어노테이션이 왜 ~ 소프트 딜리트 기능을 하는지?
 public class PostEntity {
@@ -54,16 +55,17 @@ public class PostEntity {
         this.body = body;
     }
 
-    @PrePersist
-    protected void registeredAt() {
-        this.registeredAt = Timestamp.from(Instant.now());
+    public PostEntity(String title, String body, UserEntity user) {
+        this.title = title;
+        this.body = body;
+        this.user = user;
     }
 
-    @PreUpdate
-    protected void updatedAt() {
-        this.updatedAt = Timestamp.from(Instant.now());
+    public PostEntity(Long id, String title, String body) {
+        this.id = id;
+        this.title = title;
+        this.body = body;
     }
-
 
     //post entity 생성 메서드 (기타 필드는 자동으로 만들어짐)
     public static PostEntity of(String title, String body, UserEntity user) {
@@ -74,18 +76,14 @@ public class PostEntity {
         return postEntity;
     }
 
-
-    public PostEntity(String title, String body, UserEntity user) {
-        this.title = title;
-        this.body = body;
-        this.user = user;
+    @PrePersist
+    protected void registeredAt() {
+        this.registeredAt = Timestamp.from(Instant.now());
     }
 
-
-    public PostEntity(Long id, String title, String body) {
-        this.id = id;
-        this.title = title;
-        this.body = body;
+    @PreUpdate
+    protected void updatedAt() {
+        this.updatedAt = Timestamp.from(Instant.now());
     }
 
 }
