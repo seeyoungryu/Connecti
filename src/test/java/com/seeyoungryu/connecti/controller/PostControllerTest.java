@@ -40,7 +40,7 @@ public class PostControllerTest {
     포스트 작성
      */
     @Test
-    @WithMockUser //인증된 유저
+    @WithMockUser //인증된 유저 (없으면 인증 오류(401 Unauthorized)가 발생할 수 있음.)
     @DisplayName("포스트 작성 성공")
     void createPost_Success() throws Exception {
 
@@ -76,7 +76,7 @@ public class PostControllerTest {
     포스트 수정
      */
     @Test
-    @WithMockUser //인증된 유저
+    @WithMockUser
     @DisplayName("포스트 작성 성공")
     void updatePost_Success() throws Exception {
 
@@ -143,114 +143,58 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
     }
 
-
     /*
     포스트 삭제
      */
     @Test
-    @WithMockUser //인증된 유저
+    @WithMockUser
     @DisplayName("포스트 삭제 성공")
     void deletePost_Success() throws Exception {
+
         mockMvc.perform(delete("/api/v1/posts/1L")
-                        .contentType(MediaType.APPLICATION_JSON)
-                ).andDo(print())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
                 .andExpect(status().isOk());
     }
+
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
+    void deletePost_UnauthorizedError() throws Exception {
+
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
+    void deletePost_InvalidPermissionError() throws Exception {
+
+        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(any(), eq(1L));
+
+        mockMvc.perform(delete("/api/v1/posts/1L")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
+    }
+
+
+    @Test
+    @WithMockUser
+    @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
+    void deletePost_PostNotFoundError() throws Exception {
+
+        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any(), eq(1L));
+        mockMvc.perform(delete("/api/v1/posts/1L")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
+    }
+
+
 }
 
-
-
-
-
-
-
-
-//
-//    /*
-//    수정 - DB 에러 테스트 (임시)
-//     */
-//    @Test
-//    @WithMockUser
-//    @DisplayName("데이터베이스 에러 발생 시 포스트 수정 에러 발생")
-//    void modifyPost_DatabaseError() throws Exception {
-//
-//        String title = "title";
-//        String body = "body";
-//
-//
-//        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).modify(any(), eq(1L), eq("title"), eq("body"));
-//        mockMvc.perform(put("/api/v1/posts/1")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
-//                .andDo(print())
-//                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
-//    }
-//
-//    /*
-//    포스트 삭제 실패 테스트(로그인하지 않은 사용자)
-//     */
-//    @Test
-//    @WithAnonymousUser
-//    @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
-//    void deletePost_UnauthorizedError() throws Exception {
-//
-//        String title = "title";
-//        String body = "body";
-//
-//
-//        mockMvc.perform(delete("/api/v1/posts/1")
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andDo(print())
-//                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
-//    }
-//
-//    /*
-//    포스트 삭제 실패 테스트(권한이 없는 사용자)
-//     */
-//    @Test
-//    @WithMockUser
-//    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
-//    void deletePost_InvalidPermissionError() throws Exception {
-//
-//        String title = "title";
-//        String body = "body";
-//
-//
-//        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(any(), eq(1L));
-//        mockMvc.perform(delete("/api/v1/posts/1")
-//                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andDo(print())
-//                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
-//    }
-//
-//    /*
-//    포스트 삭제 실패(존재하지 않는 포스트)
-//     */
-//    @Test
-//    @WithMockUser
-//    @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
-//    void deletePost_PostNotFoundError() throws Exception {
-//        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any(), eq(1L));
-//
-//        mockMvc.perform(delete("/api/v1/posts/1")
-//                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andDo(print())
-//                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
-//    }
-//
-//    /*
-//    삭제 - DB 에러 테스트 (임시)
-//     */
-//    @Test
-//    @WithMockUser
-//    @DisplayName("데이터베이스 에러 발생 시 포스트 삭제 에러 발생")
-//    void deletePost_DatabaseError() throws Exception {
-//        doThrow(new ConnectiApplicationException(ErrorCode.DATABASE_ERROR)).when(postService).deletePost(any(), eq(1L));
-//        mockMvc.perform(delete("/api/v1/posts/1")
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andDo(print())
-//                .andExpect(status().is(ErrorCode.DATABASE_ERROR.getStatus().value()));
-//    }
-//}
