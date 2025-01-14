@@ -20,8 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,7 +37,7 @@ public class PostControllerTest {
 
 
     /*
-    포스트 작성 성공 테스트
+    포스트 작성
      */
     @Test
     @WithMockUser //인증된 유저
@@ -55,10 +54,6 @@ public class PostControllerTest {
                 .andExpect(status().isOk());
     }
 
-
-    /*
-    포스트 작성 실패 테스트 (로그인 하지 않은 사용자)
-     */
 
     @Test
     @WithAnonymousUser   // 익명의 유저로 요청 ~ 가정 (mocking 을 하지 않아도 됨)
@@ -78,7 +73,7 @@ public class PostControllerTest {
 
 
     /*
-    포스트 수정 성공 테스트
+    포스트 수정
      */
     @Test
     @WithMockUser //인증된 유저
@@ -96,9 +91,6 @@ public class PostControllerTest {
     }
 
 
-    /*
-    포스트 수정 실패 테스트(로그인하지 않은 상태)
-     */
     @Test
     @WithAnonymousUser
     @DisplayName("로그인하지 않은 상태에서 포스트 수정 시 에러 발생")
@@ -115,10 +107,6 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
     }
 
-
-    /*
-    포스트 수정 실패 테스트(유효하지 않은 사용자)
-     */
     @Test
     @WithMockUser
     @DisplayName("본인이 작성한 글이 아닌 포스트 수정 시 에러 발생")
@@ -137,9 +125,7 @@ public class PostControllerTest {
                 .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
     }
 
-    /*
-    포스트 수정 실패(존재하지 않는 포스트)
-     */
+
     @Test
     @WithMockUser
     @DisplayName("수정하려는 포스트가 없을 경우 에러 발생")
@@ -156,7 +142,28 @@ public class PostControllerTest {
                 .andDo(print())
                 .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
     }
+
+
+    /*
+    포스트 삭제
+     */
+    @Test
+    @WithMockUser //인증된 유저
+    @DisplayName("포스트 삭제 성공")
+    void deletePost_Success() throws Exception {
+        mockMvc.perform(delete("/api/v1/posts/1L")
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andDo(print())
+                .andExpect(status().isOk());
+    }
 }
+
+
+
+
+
+
+
 
 //
 //    /*
