@@ -33,9 +33,7 @@ public class PostEntity {
     @Setter
     private String body;
 
-
-    //외래키 설정
-    @ManyToOne(fetch = FetchType.LAZY)  //@Todo 지연로딩 -> 성능 최적화  (n+1 확실하게 알기 ~ 블로그)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @Setter
     private UserEntity user;
@@ -98,14 +96,6 @@ public class PostEntity {
 @Where: deleted_at IS NULL 조건을 추가해 조회 시 삭제되지 않은 데이터만 조회되도록 합니다.
 소프트 삭제의 이점은 데이터 복구가 가능하고, 히스토리를 유지할 수 있다는 점입니다.
 
-
-
- */
-
-
-/*
-지연 로딩 (FetchType.LAZY): 내 코드에서는 FetchType.LAZY를 사용해 성능 최적화를 합니다. 즉, PostEntity를 조회할 때 UserEntity는 즉시 로드되지 않고, 접근할 때 로드됩니다. 강사 코드에도 FetchType.LAZY를 추가하는 것이 성능 면에서 유리할 수 있습니다.
-지연 로딩 (Lazy Fetch): 강사 코드에 FetchType.LAZY를 추가하면 불필요한 UserEntity 로드를 줄일 수 있어 성능 최적화에 기여할 수 있습니다.
  */
 
 

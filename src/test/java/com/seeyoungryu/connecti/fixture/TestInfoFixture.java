@@ -19,7 +19,6 @@ public class TestInfoFixture {
         private String title;
         private String body;
 
-        // Getter와 Setter 추가
         public Long getPostId() {
             return postId;
         }

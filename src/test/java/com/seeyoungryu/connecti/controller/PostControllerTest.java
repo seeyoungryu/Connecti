@@ -171,7 +171,8 @@ public class PostControllerTest {
 
     @Test
     @WithMockUser
-    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
+    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생-작성자와 삭제 요청자가 다를 경우")
+        //mocking 이 필요하다?
     void deletePost_InvalidPermissionError() throws Exception {
 
         doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(eq(1L)); //eq(1L)은 Mockito의 매개변수 매처로, deletePost 메서드 호출 시 1L 값이 전달될 것을 지정.

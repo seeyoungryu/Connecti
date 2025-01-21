@@ -39,11 +39,23 @@ public class PostService {
         UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() ->
                 new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("username %s not found", userName)));
 
-        //@todo 1. post 존재여부 확인 -> 존재하지 않는다는 exeption 던져야함
-        //@todo 2. 포스트 permission (수정자와 작성자와 동일한지) 확인 ~ 해야함 -> 퍼미션이 유효하지 않다는 에러 던져야함
+        // post 존재여부 확인
+        PostEntity postEntity = postEntityRepository.findById(postId).orElseThrow(() ->
+                new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s not found", postId)));
 
+        // 포스트 permission 확인
+        if (!postEntity.getUser().equals(userEntity)) {
+            throw new ConnectiApplicationException(
+                    ErrorCode.INVALID_PERMISSION,
+                    String.format("%s has no permission with %s", userName, postId)
+            );
+        }
 
+        // 수정 내용 반영
+        postEntity.setTitle(title);
+        postEntity.setBody(body);
     }
+
 
     @Transactional
     public void deletePost(Long postId) {
