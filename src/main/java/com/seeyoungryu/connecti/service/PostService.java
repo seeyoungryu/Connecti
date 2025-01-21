@@ -58,13 +58,22 @@ public class PostService {
 
 
     @Transactional
-    public void deletePost(Long postId) {
-        PostEntity postEntity = postEntityRepository.findById(postId)
-                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND));
+    public void deletePost(String userName, Long postId) {
 
-        // 작성자와 요청자의 일치 여부 확인
-        if (!postEntity.getUser().getUserName().equals(postEntity.getUser().getUserName())) {
-            throw new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION);
+        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() ->
+                new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("username %s not found", userName)));
+
+
+        // post 존재여부 확인
+        PostEntity postEntity = postEntityRepository.findById(postId).orElseThrow(() ->
+                new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s not found", postId)));
+
+        // 포스트 permission 확인
+        if (!postEntity.getUser().equals(userEntity)) {
+            throw new ConnectiApplicationException(
+                    ErrorCode.INVALID_PERMISSION,
+                    String.format("%s has no permission with %s", userName, postId)
+            );
         }
 
         postEntityRepository.delete(postEntity);
