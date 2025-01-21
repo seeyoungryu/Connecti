@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PostEntityRepository extends JpaRepository<PostEntity, Long> {   // id -> Long 타입임
+public interface PostEntityRepository extends JpaRepository<PostEntity, Long> {   // id -> Long 타입
     Optional<PostEntity> findById(Long postId);
 
 }

@@ -48,7 +48,7 @@ public class PostService {
     }
 
     @Transactional
-    public void modify(String title, String body, String userName, Long postId) {
+    public void modifyPost(String title, String body, String userName, Long postId) {
         UserEntity userEntity = findUserByName(userName);
         PostEntity postEntity = findPostById(postId);
         validatePermission(userEntity, postEntity, userName, postId);

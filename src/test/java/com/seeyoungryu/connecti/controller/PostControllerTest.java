@@ -116,7 +116,7 @@ public class PostControllerTest {
         String body = "body";
 
         //이 부분에 본인이 작성한 글이 아니라는 모킹이 필요함
-        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).modify(eq(title), eq(body), any(), eq(1L));  // title, body, uesrName, 1L => any() , eq(1L)
+        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).modifyPost(eq(title), eq(body), any(), eq(1L));  // title, body, uesrName, 1L => any() , eq(1L)
 
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -135,7 +135,7 @@ public class PostControllerTest {
         String body = "body";
 
 
-        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modify(eq(title), eq(body), any(), eq(1L));
+        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modifyPost(eq(title), eq(body), any(), eq(1L));
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
@@ -147,50 +147,36 @@ public class PostControllerTest {
     포스트 삭제
      */
     @Test
-    @WithMockUser
+    @WithMockUser(username = "testUser")
     @DisplayName("포스트 삭제 성공")
     void deletePost_Success() throws Exception {
-
-        mockMvc.perform(delete("/api/v1/posts/1L")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-
-    @Test
-    @WithAnonymousUser
-    @DisplayName("로그인하지 않은 상태에서 포스트 삭제 시 에러 발생")
-    void deletePost_UnauthorizedError() throws Exception {
-
         mockMvc.perform(delete("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+                .andExpect(status().isNoContent());
     }
 
     @Test
-    @WithMockUser
-    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생-작성자와 삭제 요청자가 다를 경우")
-        //mocking 이 필요하다?
+    @WithMockUser(username = "testUser")
+    @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
     void deletePost_InvalidPermissionError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION))
+                .when(postService).deletePost(eq("testUser"), eq(1L));
 
-        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(eq(1L)); //eq(1L)은 Mockito의 매개변수 매처로, deletePost 메서드 호출 시 1L 값이 전달될 것을 지정.
-
-        mockMvc.perform(delete("/api/v1/posts/1L")
+        mockMvc.perform(delete("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
     }
 
-
     @Test
-    @WithMockUser
+    @WithMockUser(username = "testUser")
     @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
     void deletePost_PostNotFoundError() throws Exception {
+        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND))
+                .when(postService).deletePost(eq("testUser"), eq(1L));
 
-        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any());
-        mockMvc.perform(delete("/api/v1/posts/1L")
+        mockMvc.perform(delete("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));

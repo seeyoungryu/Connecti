@@ -91,7 +91,7 @@ public class PostServiceTest {
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
-        Assertions.assertDoesNotThrow(() -> postService.modify(title, body, userName, postId));
+        Assertions.assertDoesNotThrow(() -> postService.modifyPost(title, body, userName, postId));
     }
 
 
@@ -110,7 +110,7 @@ public class PostServiceTest {
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(writer));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
 
-        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.modify(title, body, userName, postId));
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.modifyPost(title, body, userName, postId));
         Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
     }
 
@@ -130,7 +130,7 @@ public class PostServiceTest {
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                () -> postService.modify(title, body, userName, postId));
+                () -> postService.modifyPost(title, body, userName, postId));
         Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
 
@@ -149,7 +149,7 @@ public class PostServiceTest {
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
-        Assertions.assertDoesNotThrow(() -> postService.deletePost(1L));
+        Assertions.assertDoesNotThrow(() -> postService.deletePost("userName", 1L));
     }
 
     @Test
@@ -168,7 +168,7 @@ public class PostServiceTest {
         when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                () -> postService.deletePost(1L));
+                () -> postService.deletePost("userName", 1L));
         Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
     }
 
@@ -187,7 +187,7 @@ public class PostServiceTest {
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                () -> postService.deletePost(1L));
+                () -> postService.deletePost("userName", 1L));
         Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
     }
 
@@ -207,7 +207,7 @@ public class PostServiceTest {
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                () -> postService.deletePost(1L));
+                () -> postService.deletePost("userName", 1L));
         Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
 
