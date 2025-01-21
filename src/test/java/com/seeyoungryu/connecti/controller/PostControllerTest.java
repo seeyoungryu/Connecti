@@ -104,7 +104,7 @@ public class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -122,7 +122,7 @@ public class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
+                .andExpect(status().isUnauthorized());
     }
 
 
@@ -140,7 +140,7 @@ public class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
+                .andExpect(status().isNotFound());
     }
 
     /*
@@ -166,7 +166,7 @@ public class PostControllerTest {
         mockMvc.perform(delete("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_PERMISSION.getStatus().value()));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -179,9 +179,8 @@ public class PostControllerTest {
         mockMvc.perform(delete("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
+                .andExpect(status().isNotFound());
     }
-
 
 }
 
