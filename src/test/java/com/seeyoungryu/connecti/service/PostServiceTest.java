@@ -59,7 +59,7 @@ public class PostServiceTest {
     @Test
     @DisplayName("Post 생성 시 유저 미존재 에러 발생")
     void testCreatePostErrorUserNotFound() {
-        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();   // Todo 이 코드줄의 존재 의미가 뭐임 ..?
+        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
         when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.empty()); //유저 존재하지 않음
         when(postEntityRepository.save(any())).thenReturn(mock(PostEntity.class));
 
@@ -95,17 +95,6 @@ public class PostServiceTest {
     }
 
 
-//    @Test
-//    @DisplayName("Post 수정 시 Post 미존재 에러 발생")
-//    void testModifyPostErrorPostNotFound() {
-//        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
-//        when(postEntityRepository.findById(fixture.getPostId())).thenReturn(Optional.empty());
-//        ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () ->
-//                postService.modify(fixture.getUserName(), fixture.getTitle(), fixture.getBody(), fixture.getPostId()));
-//        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, exception.getErrorCode());
-//    }
-
-
     @Test
     @DisplayName("Post 수정 시 Post 미존재 에러 발생")
     void testModifyPostErrorPostNotFound() {
@@ -137,74 +126,90 @@ public class PostServiceTest {
         PostEntity postEntity = PostEntityFixture.get(userName, postId);
         UserEntity writer = UserEntityFixture.get(userName, "password");
 
-        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(writer));
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(writer));     //데이터베이스를 사용하는 로직을 모킹(mocking)하여 테스트 환경을 격리시킴.
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
                 () -> postService.modify(title, body, userName, postId));
         Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
+
+    @Test
+    @DisplayName("Post 삭제 성공")
+    void testDeletePostSuccess() {
+
+        String userName = "userName";
+        Long postId = 1L;
+
+        // Fixture 사용
+        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+        UserEntity userEntity = postEntity.getUser();
+
+        // Mocking
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        Assertions.assertDoesNotThrow(() -> postService.deletePost(1L));
+    }
+
+    @Test
+    @DisplayName("Post 삭제 시 Post 미존재 에러 발생")
+    void testDeletePostErrorPostNotFound() {
+
+        String userName = "userName";
+        Long postId = 1L;
+
+        // Fixture 사용
+        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+        UserEntity userEntity = postEntity.getUser();
+
+        // Mocking
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                () -> postService.deletePost(1L));
+        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Post 삭제 시 유저 미존재 에러 발생")
+    void testDeletePostErrorUserNotFound() {
+
+        String userName = "userName";
+        Long postId = 1L;
+
+        // Fixture 사용
+        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+
+        // Mocking
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                () -> postService.deletePost(1L));
+        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Post 삭제 시 작성자 불일치 에러 발생")
+    void testDeletePostErrorUserNotAuthor() {
+
+        String userName = "userName";
+        Long postId = 1L;
+
+        // Fixture 사용
+        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+        UserEntity otherUser = UserEntityFixture.get("otherUser", "password");
+
+        // Mocking
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(otherUser));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                () -> postService.deletePost(1L));
+        Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
+    }
+
 }
 
-
-
-//미완성 메서드
-//@Test
-//@DisplayName("Post 수정 시 작성자 불일치 에러 발생")
-//void testModifyPostErrorUserNotAuthor() {
-//    PostEntity mockPostEntity = mock(PostEntity.class);
-//    UserEntity mockUserEntity = mock(UserEntity.class);
-//    TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
-//    when(postEntityRepository.findById(fixture.getPostId())).thenReturn(Optional.of(mockPostEntity));
-//    when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.of(mockUserEntity));
-//    when(mockPostEntity.getUser()).thenReturn(mock(UserEntity.class));
-//    ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.modify(fixture.getUserName(), fixture.getTitle(), fixture.getBody(), fixture.getPostId()));
-//}
-//
-//}
-//    @Test
-//    @DisplayName("Post 삭제 시 Post 미존재 에러 발생")
-//    void testDeletePostErrorPostNotFound() {
-//        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
-//        when(postEntityRepository.findById(fixture.getPostId())).thenReturn(Optional.empty());
-//        ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.deletePost(fixture.getUserName(), fixture.getPostId()));
-//        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, exception.getErrorCode());
-//    }
-//
-//    @Test
-//    @DisplayName("Post 삭제 시 유저 미존재 에러 발생")
-//    void testDeletePostErrorUserNotFound() {
-//        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
-//        when(postEntityRepository.findById(fixture.getPostId())).thenReturn(Optional.of(mock(PostEntity.class)));
-//        when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.empty());
-//        ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.deletePost(fixture.getUserName(), fixture.getPostId()));
-//        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
-//    }
-//
-//    @Test
-//    @DisplayName("Post 삭제 시 작성자 불일치 에러 발생")
-//    void testDeletePostErrorUserNotAuthor() {
-//        PostEntity mockPostEntity = mock(PostEntity.class);
-//        UserEntity mockUserEntity = mock(UserEntity.class);
-//        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
-//        when(postEntityRepository.findById(fixture.getPostId())).thenReturn(Optional.of(mockPostEntity));
-//        when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.of(mockUserEntity));
-//        when(mockPostEntity.getUser()).thenReturn(mock(UserEntity.class));
-//        ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.deletePost(fixture.getUserName(), fixture.getPostId()));
-//        Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, exception.getErrorCode());
-//    }
-//}
-//
-
-
-//    /*
-//    조회
-//     */
-//    @Test
-//    @DisplayName("내 Post 리스트 조회 시 유저 미존재 에러 발생")
-//    void testFetchMyPostsErrorUserNotFound() {
-//        TestInfoFixture.TestInfo fixture = TestInfoFixture.get();
-//        when(userEntityRepository.findByUserName(fixture.getUserName())).thenReturn(Optional.empty());
-//        ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.my(fixture.getUserName(), mock(Pageable.class)));
-//        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
-//    }

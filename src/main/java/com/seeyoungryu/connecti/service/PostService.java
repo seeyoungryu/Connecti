@@ -44,6 +44,21 @@ public class PostService {
 
 
     }
+
+    @Transactional
+    public void deletePost(Long postId) {
+        PostEntity postEntity = postEntityRepository.findById(postId)
+                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND));
+
+        // 작성자와 요청자의 일치 여부 확인
+        if (!postEntity.getUser().getUserName().equals(postEntity.getUser().getUserName())) {
+            throw new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION);
+        }
+
+        postEntityRepository.delete(postEntity);
+    }
+
+
 }
 
 

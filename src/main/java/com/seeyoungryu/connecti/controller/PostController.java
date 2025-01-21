@@ -1,9 +1,11 @@
 package com.seeyoungryu.connecti.controller;
 
 import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
-import com.seeyoungryu.connecti.controller.response.PostResponse;
 import com.seeyoungryu.connecti.controller.response.Response;
+import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
+import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
+import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
+    private final PostEntityRepository postEntityRepository;
 
 
     /*
@@ -47,10 +50,15 @@ public class PostController {
     /*
     post 조회
      */
-    @GetMapping("/{postId}")
-    public ResponseEntity<Response<PostResponse>> getPost(@PathVariable Long postId) {
-        PostEntity post = postService.getPost(postId);
-        return ResponseEntity.ok(Response.success(new PostResponse(post)));
+//    @GetMapping("/{postId}")
+//    public ResponseEntity<Response<PostResponse>> getPost(@PathVariable Long postId) {
+//        PostEntity post = postService.getPost(postId);
+//        return ResponseEntity.ok(Response.success(new PostResponse(post)));
+//    }
+    // getPost 메서드 추가
+    public PostEntity getPost(Long postId) {
+        return postEntityRepository.findById(postId)
+                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND));
     }
 
 

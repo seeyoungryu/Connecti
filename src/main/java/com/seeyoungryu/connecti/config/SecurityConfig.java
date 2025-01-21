@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
-//Todo AuthenticationConfig 에서 jwt 를 다루는게 일반적인가? 확인하고 코드 변경필요시 변경하기 -> 확인 (그대로 써도 됨)
+
 /*
 JwtTokenFilter와 같이 HTTP 요청/응답의 흐름에 영향을 주는 구성 요소는 SecurityConfig(Spring Security 기반 애플리케이션에서 요청/응답 흐름을 제어하는 역할을 하는 클래스)에서 관리하는 것이 표준적이고 직관적임.
 (Spring Security가 애플리케이션의 보안 정책을 정의하고 관리하는 핵심 역할을 하기 때문
@@ -35,7 +35,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtTokenFilter jwtTokenFilter() {
-        return new JwtTokenFilter(userDetailsService, secretKey);
+        return new JwtTokenFilter(userDetailsService);
     }
     // * 이 메서드와 같이 HTTP 요청/응답의 흐름에 영향을 주는 구성 요소는 SecurityConfig에서 관리하는 것이 표준적이고 직관적임
 

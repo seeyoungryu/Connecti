@@ -174,7 +174,7 @@ public class PostControllerTest {
     @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
     void deletePost_InvalidPermissionError() throws Exception {
 
-        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(any(), eq(1L));
+        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION)).when(postService).deletePost(eq(1L)); //eq(1L)은 Mockito의 매개변수 매처로, deletePost 메서드 호출 시 1L 값이 전달될 것을 지정.
 
         mockMvc.perform(delete("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -188,7 +188,7 @@ public class PostControllerTest {
     @DisplayName("삭제하려는 포스트가 없을 경우 에러 발생")
     void deletePost_PostNotFoundError() throws Exception {
 
-        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any(), eq(1L));
+        doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).deletePost(any());
         mockMvc.perform(delete("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
