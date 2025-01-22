@@ -1,5 +1,6 @@
 package com.seeyoungryu.connecti.service;
 
+import com.seeyoungryu.connecti.controller.response.PostResponse;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
@@ -41,21 +42,26 @@ public class PostService {
     }
 
     @Transactional
-    public void createPost(String title, String body, String userName) {
+    public PostEntity createPost(String title, String body, String userName) {
         UserEntity userEntity = findUserByName(userName);
         PostEntity postEntity = PostEntity.of(title, body, userEntity);
-        postEntityRepository.save(postEntity);
+        return postEntityRepository.save(postEntity);
     }
 
+
     @Transactional
-    public void modifyPost(String title, String body, String userName, Long postId) {
+    public PostResponse modifyPost(String title, String body, String userName, Long postId) {
         UserEntity userEntity = findUserByName(userName);
         PostEntity postEntity = findPostById(postId);
         validatePermission(userEntity, postEntity, userName, postId);
 
         postEntity.setTitle(title);
         postEntity.setBody(body);
+        postEntityRepository.saveAndFlush(postEntity);
+
+        return PostResponse.fromPost(postEntity);
     }
+
 
     @Transactional
     public void deletePost(String userName, Long postId) {

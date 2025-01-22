@@ -48,6 +48,15 @@ public class UserEntity {
     @Column(name = "deleted_at")
     private Timestamp deletedAt;
 
+    //of ~ *객체 생성(엔티티 자체)을 위해 사용
+    //서비스 계층 -> 데이터베이스: 엔티티 객체를 생성해 데이터베이스에 저장하는 흐름을 위한 메서드
+    public static UserEntity of(String userName, String encodedPwd) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.userName = userName;
+        userEntity.password = encodedPwd;
+        return userEntity;
+    }
+
     @PrePersist
     void registeredAt() {
         this.registeredAt = Timestamp.from(Instant.now());
@@ -57,21 +66,10 @@ public class UserEntity {
     void updatedAt() {
         this.updatedAt = Timestamp.from(Instant.now());
     }
-
-    //of ~ *객체 생성(엔티티 자체)을 위해 사용
-    //서비스 계층 -> 데이터베이스: 엔티티 객체를 생성해 데이터베이스에 저장하는 흐름을 위한 메서드
-    public static UserEntity of(String userName, String encodedPwd) {
-        UserEntity userEntity = new UserEntity();
-        userEntity.userName = userName;
-        userEntity.password = encodedPwd;
-        return userEntity;
-    }
 }
 
 
-/* 어노테이션 참고
-@Entity: JPA 엔티티로 설정하여, Spring Data JPA가 이 클래스를 통해 데이터베이스 테이블과 상호작용하도록 함
-@Table(name = "users"): 엔티티가 매핑될 데이터베이스 테이블명을 지정
+/*
 @SQLDelete: 데이터 삭제 시 실제로는 deleted_at 필드만 업데이트하여 *논리적 삭제를 구현 (소프트 딜리트)
 @Where(clause = "deleted_at IS NULL"): deleted_at 필드가 NULL인 데이터만 조회하도록 설정하여, 논리적으로 삭제된 데이터를 제외하고 조회
 @PrePersist와 @PreUpdate: 엔티티가 <<처음 저장되거나 업데이트>>될 때 <<자동>>으로 registeredAt과 updatedAt을 설정합니다.

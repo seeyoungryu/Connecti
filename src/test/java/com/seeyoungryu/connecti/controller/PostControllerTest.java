@@ -40,7 +40,7 @@ public class PostControllerTest {
     포스트 작성
      */
     @Test
-    @WithMockUser //인증된 유저 (없으면 인증 오류(401 Unauthorized)가 발생할 수 있음.)
+    @WithMockUser //인증된 유저 ~ 인증 오류(401 Unauthorized)방지
     @DisplayName("포스트 작성 성공")
     void createPost_Success() throws Exception {
 
