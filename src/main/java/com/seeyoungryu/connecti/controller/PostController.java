@@ -63,11 +63,19 @@ public class PostController {
 
 
     /*
-    post 조회
+    피드 조회
      */
     @GetMapping
-    public Response<Page<PostResponse>> list(Pageable pageable, Authentication authentication) {  // 페이징 처리 ~ 리스트 형태의 API 에서는 페이징이 필요함.
+    public Response<Page<PostResponse>> getFeedlist(Pageable pageable, Authentication authentication) {  // 페이징 처리 ~ 리스트 형태의 API 에서는 페이징이 필요함.
         return Response.success(postService.list(pageable).map(PostResponse::fromPost));
+    }
+
+    /*
+ 내 피드 조회
+  */
+    @GetMapping("/myFeedList")
+    public Response<Page<PostResponse>> getMyFeedList(Pageable pageable, Authentication authentication) {
+        return Response.success(postService.myList(authentication.getName(), pageable).map(PostResponse::fromPost));
     }
 
 }

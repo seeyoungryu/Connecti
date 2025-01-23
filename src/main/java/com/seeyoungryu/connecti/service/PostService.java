@@ -85,7 +85,7 @@ public class PostService {
     }
 
     @Transactional
-    public Page<Post> mylist(String userName, Pageable pageable) {
+    public Page<Post> myList(String userName, Pageable pageable) {
         UserEntity userEntity = findUserByName(userName);
 
 
