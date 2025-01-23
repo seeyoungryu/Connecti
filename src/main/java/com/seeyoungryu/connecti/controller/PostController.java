@@ -4,13 +4,17 @@ import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
 import com.seeyoungryu.connecti.controller.request.PostModifyRequest;
 import com.seeyoungryu.connecti.controller.response.PostResponse;
 import com.seeyoungryu.connecti.controller.response.Response;
+import com.seeyoungryu.connecti.model.Post;
 import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 
 @RequiredArgsConstructor
 @RestController
@@ -31,24 +35,19 @@ public class PostController {
         return ResponseEntity.ok(Response.success(null));
     }
 
-
     /*
-       post 수정
-    */
+    포스트 수정
+     */
     @PutMapping("/{postId}")
-    public Response<PostResponse> modifyPost(
-            @PathVariable Long postId,
-            @RequestBody PostModifyRequest request,
-            Authentication authentication) {
-        // 서비스에서 PostResponse를 직접 반환하도록 수정
-        PostResponse postResponse = postService.modifyPost(
-                request.getTitle(),
-                request.getBody(),
-                authentication.getName(),
-                postId
-        );
+    public Response<PostResponse> modifyPost(@PathVariable Long postId, @RequestBody PostModifyRequest request, Authentication authentication) {
+        // postService.modifyPost 메서드 호출 및 Post 객체 반환
+        Post modifiedPost = postService.modifyPost(request.getTitle(), request.getBody(), authentication.getName(), postId);
 
-        return Response.success(postResponse); // PostResponse를 감싼 Response 객체 반환
+        // Post 객체를 PostResponse로 변환
+        PostResponse postResponse = PostResponse.fromPost(modifiedPost);
+
+        // 변환된 PostResponse를 Response.success로 감싸서 반환
+        return Response.success(postResponse);
     }
 
 
@@ -63,18 +62,13 @@ public class PostController {
     }
 
 
-    //
-//    /*
-//    post 조회
-//     */
-//
-//    public PostEntity getPost(Long postId) {
-//        return postEntityRepository.findById(postId)
-//                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND));
-//    }
-//
-//
-//
+    /*
+    post 조회
+     */
+    @GetMapping
+    public Response<Page<PostResponse>> list(Pageable pageable, Authentication authentication) {  // 페이징 처리 ~ 리스트 형태의 API 에서는 페이징이 필요함.
+        return Response.success(postService.list(pageable).map(PostResponse::fromPost));
+    }
 
 }
 

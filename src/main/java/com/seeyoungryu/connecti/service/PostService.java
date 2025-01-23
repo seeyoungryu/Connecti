@@ -1,13 +1,15 @@
 package com.seeyoungryu.connecti.service;
 
-import com.seeyoungryu.connecti.controller.response.PostResponse;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
+import com.seeyoungryu.connecti.model.Post;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,16 +52,21 @@ public class PostService {
 
 
     @Transactional
-    public PostResponse modifyPost(String title, String body, String userName, Long postId) {
+    public Post modifyPost(String title, String body, String userName, Long postId) {
+        // 유저와 게시글 조회
         UserEntity userEntity = findUserByName(userName);
         PostEntity postEntity = findPostById(postId);
+
+        // 권한 검증
         validatePermission(userEntity, postEntity, userName, postId);
 
+        // 게시글 수정
         postEntity.setTitle(title);
         postEntity.setBody(body);
-        postEntityRepository.saveAndFlush(postEntity);
 
-        return PostResponse.fromPost(postEntity);
+        // 수정된 엔티티 저장 및 반환
+        PostEntity updatedPostEntity = postEntityRepository.saveAndFlush(postEntity);
+        return Post.fromEntity(updatedPostEntity);
     }
 
 
@@ -70,5 +77,18 @@ public class PostService {
         validatePermission(userEntity, postEntity, userName, postId);
 
         postEntityRepository.delete(postEntity);
+    }
+
+    @Transactional
+    public Page<Post> list(Pageable pageable) { //엔티티는 서비스단에서 반환할때 사용 안하기로..?
+        return postEntityRepository.findAll(pageable).map(Post::fromEntity);
+    }
+
+    @Transactional
+    public Page<Post> mylist(String userName, Pageable pageable) {
+        UserEntity userEntity = findUserByName(userName);
+
+
+        return postEntityRepository.findAllByUserId(userEntity, pageable).map(Post::fromEntity);
     }
 }

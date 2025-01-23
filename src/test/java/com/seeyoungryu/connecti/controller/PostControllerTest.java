@@ -85,7 +85,7 @@ public class PostControllerTest {
 
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -100,9 +100,9 @@ public class PostControllerTest {
         String body = "body";
 
 
-        mockMvc.perform(put("/api/v1/posts/1")
+        mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
@@ -120,9 +120,9 @@ public class PostControllerTest {
 
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
 
@@ -138,7 +138,7 @@ public class PostControllerTest {
         doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modifyPost(eq(title), eq(body), any(), eq(1L));
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -150,10 +150,20 @@ public class PostControllerTest {
     @WithMockUser(username = "testUser")
     @DisplayName("포스트 삭제 성공")
     void deletePost_Success() throws Exception {
-        mockMvc.perform(delete("/api/v1/posts/1")
+        mockMvc.perform(delete("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("포스트 삭제시 로그인 하지 않은 경우 에러 발생")
+    void deletePost_UnauthorizedError() throws Exception {
+        mockMvc.perform(delete("/api/v1/posts/1L")
+                        .contentType(MediaType.APPLICATION_JSON)
+                ).andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -163,10 +173,10 @@ public class PostControllerTest {
         doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION))
                 .when(postService).deletePost(eq("testUser"), eq(1L));
 
-        mockMvc.perform(delete("/api/v1/posts/1")
+        mockMvc.perform(delete("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -176,11 +186,64 @@ public class PostControllerTest {
         doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND))
                 .when(postService).deletePost(eq("testUser"), eq(1L));
 
-        mockMvc.perform(delete("/api/v1/posts/1")
+        mockMvc.perform(delete("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
 
-}
 
+    /*
+     피드 목록(포스트들의 리스트) 가져오기
+    */
+    @Test
+    @WithMockUser
+    @DisplayName("피드 목록 요청 시 성공")
+    void returnFeedList_Success() throws Exception {
+        // 모킹 해야함
+        mockMvc.perform(get("/api/v1/posts")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("로그인되지 않은 사용자가 피드 목록 요청 시 에러 발생")
+    void returnFeedList_UnauthorizedError() throws Exception {
+        // 모킹 해야함
+        mockMvc.perform(get("/api/v1/posts")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+
+    /*
+    내 피드 목록(포스트들의 리스트) 가져오기
+     */
+
+    @Test
+    @WithMockUser
+    @DisplayName("나의 피드 목록 요청 시 성공")
+    void returnMyFeedList_Success() throws Exception {
+        // 모킹 해야함
+        mockMvc.perform(get("/api/v1/posts/myFeed")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("로그인되지 않은 사용자가 나의 피드 목록 요청 시 에러 발생")
+    void returnMyFeedList_UnauthorizedError() throws Exception {
+        // 모킹 해야함
+        mockMvc.perform(get("/api/v1/posts/myFeed")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+
+}
