@@ -5,6 +5,7 @@ import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.fixture.PostEntityFixture;
 import com.seeyoungryu.connecti.fixture.TestInfoFixture;
 import com.seeyoungryu.connecti.fixture.UserEntityFixture;
+import com.seeyoungryu.connecti.model.Post;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.PostEntityRepository;
@@ -15,7 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -211,5 +217,102 @@ public class PostServiceTest {
         Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
 
+
+    /*
+     * 전체 피드 조회 성공 테스트
+     */
+    @Test
+    @DisplayName("전체 피드 조회 성공")
+    void testListFeedSuccess() {
+        // Mock 데이터 생성
+        Pageable pageable = PageRequest.of(0, 10);
+        List<PostEntity> postEntities = List.of(
+                PostEntityFixture.get("user1", 1L),
+                PostEntityFixture.get("user2", 2L)
+        );
+        Page<PostEntity> postEntityPage = new PageImpl<>(postEntities);
+
+        // Mocking
+        when(postEntityRepository.findAll(pageable)).thenReturn(postEntityPage);
+
+        // 서비스 호출
+        Page<Post> result = postService.list(pageable);
+
+        // 검증
+        Assertions.assertEquals(2, result.getContent().size());
+        Assertions.assertEquals("user1", result.getContent().get(0).getTitle());
+        Assertions.assertEquals("user2", result.getContent().get(1).getTitle());
+    }
+
+    /*
+     * 전체 피드 조회 시 비어 있는 결과 테스트
+     */
+    @Test
+    @DisplayName("전체 피드 조회 시 비어 있는 결과 반환")
+    void testListFeedEmptyResult() {
+        // Mock 데이터 생성
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<PostEntity> emptyPage = Page.empty(pageable);
+
+        // Mocking
+        when(postEntityRepository.findAll(pageable)).thenReturn(emptyPage);
+
+        // 서비스 호출
+        Page<Post> result = postService.list(pageable);
+
+        // 검증
+        Assertions.assertTrue(result.isEmpty());
+    }
+
+    /*
+     * 내 피드 조회 성공 테스트
+     */
+    @Test
+    @DisplayName("내 피드 조회 성공")
+    void testMyFeedListSuccess() {
+        // Mock 데이터 생성
+        Pageable pageable = PageRequest.of(0, 10);
+        UserEntity userEntity = UserEntityFixture.get("user1", "password");
+        List<PostEntity> postEntities = List.of(
+                PostEntityFixture.get("user1", 1L),
+                PostEntityFixture.get("user1", 2L)
+        );
+        Page<PostEntity> postEntityPage = new PageImpl<>(postEntities);
+
+        // Mocking
+        when(userEntityRepository.findByUserName("user1")).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findAllByUserId(userEntity, pageable)).thenReturn(postEntityPage);
+
+        // 서비스 호출
+        Page<Post> result = postService.myList("user1", pageable);
+
+        // 검증
+        Assertions.assertEquals(2, result.getContent().size());
+        Assertions.assertEquals("user1", result.getContent().get(0).getTitle());
+        Assertions.assertEquals("user1", result.getContent().get(1).getTitle());
+    }
+
+    /*
+     * 내 피드 조회 시 유저 미존재 에러 테스트
+     */
+    @Test
+    @DisplayName("내 피드 조회 시 유저 미존재 에러 발생")
+    void testMyFeedListErrorUserNotFound() {
+        // Mock 데이터 생성
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // Mocking
+        when(userEntityRepository.findByUserName("nonexistentUser")).thenReturn(Optional.empty());
+
+        // 검증
+        ConnectiApplicationException e = Assertions.assertThrows(
+                ConnectiApplicationException.class,
+                () -> postService.myList("nonexistentUser", pageable)
+        );
+        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+    }
 }
+
+
+
 
