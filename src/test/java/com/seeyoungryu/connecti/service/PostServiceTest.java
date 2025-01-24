@@ -94,8 +94,22 @@ public class PostServiceTest {
         PostEntity postEntity = PostEntityFixture.get(userName, postId);
         UserEntity userEntity = postEntity.getUser();
 
+
+        // 디버깅 로그
+        System.out.println("PostEntity: " + postEntity);
+        System.out.println("PostEntity ID: " + postEntity.getId());
+        System.out.println("PostEntity Title: " + postEntity.getTitle());
+        System.out.println("PostEntity Body: " + postEntity.getBody());
+        System.out.println("PostEntity User: " + postEntity.getUser());
+        //PostEntity: com.seeyoungryu.connecti.model.entity.PostEntity@510d4d4b
+        //PostEntity ID: 1
+        //PostEntity Title: Test Title
+        //PostEntity Body: Test Body
+        //PostEntity User: com.seeyoungryu.connecti.model.entity.UserEntity@12f32f99 -> 디버깅 로그 정상 출력 (postEntityFixture.get 메서드 문제는 아님)
+
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+        //Optional.of(postEntity)에서 postEntity가 null이라면, Optional.of(null)과 같은 상황이 되어 NullPointerException이 발생하거나 이후에 postEntity.getId()를 호출했을 때 문제가 발생합니다.
 
         Assertions.assertDoesNotThrow(() -> postService.modifyPost(title, body, userName, postId));
     }
@@ -109,15 +123,21 @@ public class PostServiceTest {
         String userName = "userName";
         Long postId = 1L;
 
+//        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+//        UserEntity userEntity = postEntity.getUser();
+//        UserEntity writer = UserEntityFixture.get(userName, "password");
+        // Fixture 사용
         PostEntity postEntity = PostEntityFixture.get(userName, postId);
         UserEntity userEntity = postEntity.getUser();
-        UserEntity writer = UserEntityFixture.get(userName, "password");
 
-        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(writer));
-        when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity)); //NPE
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.modifyPost(title, body, userName, postId));
         Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+
+        // Assertion
+        // Assertions.assertDoesNotThrow(() -> postService.modifyPost(title, body, userName, postId));
     }
 
 
