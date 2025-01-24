@@ -176,18 +176,23 @@ public class PostControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+
     @Test
     @WithMockUser(username = "testUser")
     @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
     void deletePost_InvalidPermissionError() throws Exception {
+        // Mocking: 삭제 권한이 없는 사용자
         doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION))
                 .when(postService).deletePost(eq("testUser"), eq(1L));
 
-        mockMvc.perform(delete("/api/v1/posts/1L")
-                        .contentType(MediaType.APPLICATION_JSON))
+        // MockMvc 요청: 삭제 시도
+        mockMvc.perform(delete("/api/v1/posts/1") // "1L"에서 "1"로 수정
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer valid-token")) // Mocking한 유효한 JWT 토큰
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden()); // 상태 코드 403 기대
     }
+
 
     @Test
     @WithMockUser(username = "testUser")
