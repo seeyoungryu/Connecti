@@ -35,7 +35,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtTokenFilter jwtTokenFilter() {
-        return new JwtTokenFilter(userDetailsService);
+        return new JwtTokenFilter(userDetailsService, secretKey);
     }
     // * 이 메서드와 같이 HTTP 요청/응답의 흐름에 영향을 주는 구성 요소는 SecurityConfig에서 관리하는 것이 표준적이고 직관적임
 

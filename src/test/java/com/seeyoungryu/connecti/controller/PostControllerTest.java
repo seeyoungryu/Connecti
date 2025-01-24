@@ -66,19 +66,15 @@ public class PostControllerTest {
 
 
     @Test
-    @WithAnonymousUser   // 익명의 유저로 요청 ~ 가정 (mocking 을 하지 않아도 됨)
+    @WithAnonymousUser   // 익명 사용자 요청으로 설정
     @DisplayName("로그인하지 않은 상태에서 포스트 작성 시 에러 발생")
     void createPost_UnauthorizedError() throws Exception {
-
-        String title = "title";
-        String body = "body";
-
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body"))))
                 .andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));    // =? status().inUnauthorized()
+                .andExpect(status().isUnauthorized()); // 401 기대
     }
 
 
