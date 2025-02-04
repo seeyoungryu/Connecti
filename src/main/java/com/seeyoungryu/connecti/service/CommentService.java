@@ -32,7 +32,7 @@ public class CommentService {
         PostEntity post = postEntityRepository.findById(postId)
                 .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND));
 
-        commentEntityRepository.save(new CommentEntity(content, post, user));
+        commentEntityRepository.save(new CommentEntity(1L, content, post, user));
     }
 
     // 댓글 목록 조회 (페이지네이션 적용)
