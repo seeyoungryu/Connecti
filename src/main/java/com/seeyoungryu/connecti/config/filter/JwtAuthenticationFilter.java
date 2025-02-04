@@ -1,10 +1,13 @@
 package com.seeyoungryu.connecti.config.filter;
 
-import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
+import com.seeyoungryu.connecti.service.JwtAuthenticationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -13,37 +16,38 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenUtils jwtTokenUtils;
-
-    public JwtAuthenticationFilter(JwtTokenUtils jwtTokenUtils) {
-        this.jwtTokenUtils = jwtTokenUtils;
-    }
+    private final JwtAuthenticationService jwtAuthenticationService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        // Authorization 헤더에서 JWT 토큰 추출
-        String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);  // 'Bearer ' 부분을 제거하고 토큰만 남김
-            String username = jwtTokenUtils.extractUsername(token);  // JWT에서 사용자 이름 추출
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-            // 사용자 이름이 유효하고, 현재 인증이 안 되어 있을 경우
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // 토큰에서 권한 정보를 가져와 Authentication 객체 생성
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, jwtTokenUtils.getAuthorities(token));
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // SecurityContext에 인증 객체 설정
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-
+        if (header == null || !header.startsWith("Bearer ")) {
+            chain.doFilter(request, response);
+            return;
         }
-        // 다음 필터로 요청 전달
+
+        String token = header.substring(7);
+        try {
+            String username = jwtAuthenticationService.validateAndExtractUsername(token);
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    username, null, null
+            );
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (Exception e) {
+            log.error("JWT Token validation failed: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
+        }
+
         chain.doFilter(request, response);
     }
-
 }

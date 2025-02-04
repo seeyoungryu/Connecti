@@ -8,12 +8,13 @@ import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -84,11 +85,14 @@ public class PostService {
         return postEntityRepository.findAll(pageable).map(Post::fromEntity);
     }
 
+
     @Transactional
     public Page<Post> myList(String userName, Pageable pageable) {
         UserEntity userEntity = findUserByName(userName);
 
-
-        return postEntityRepository.findAllByUserId(userEntity, pageable).map(Post::fromEntity);
+        return postEntityRepository.findAllByUserId(userEntity.getId(), pageable)
+                .map(Post::fromEntity);
     }
+
 }
+

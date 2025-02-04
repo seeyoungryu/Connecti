@@ -1,12 +1,14 @@
 package com.seeyoungryu.connecti.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seeyoungryu.connecti.config.filter.JwtAuthenticationFilter;
 import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
 import com.seeyoungryu.connecti.controller.request.PostModifyRequest;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.Post;
 import com.seeyoungryu.connecti.service.PostService;
+import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -38,27 +41,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class PostControllerTest {
 
+    private final String secretKey = "test-secret-key"; // 테스트용 시크릿 키
     @MockBean
     PostService postService;
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private JwtTokenUtils jwtTokenUtils;
 
 
     /*
     포스트 작성
      */
     @Test
-    @WithMockUser //인증된 유저 ~ 인증 오류(401 Unauthorized)방지
+    @WithMockUser(username = "testUser") // 인증된 유저 설정
     @DisplayName("포스트 작성 성공")
     void createPost_Success() throws Exception {
 
-        String title = "title";
-        String body = "body";
+        // JWT 생성 (테스트용 토큰)
+        String validToken = jwtTokenUtils.generateToken("testUser", secretKey, 3600000L); // 만료 시간: 1시간
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken) // Authorization 헤더 추가
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().isOk());

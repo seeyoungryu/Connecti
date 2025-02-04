@@ -287,12 +287,23 @@ public class PostServiceTest {
     /*
      * 내 피드 조회 성공 테스트
      */
+
+
+    /*
+    @Test
+    void 피드목록_조회_성공
+    Pagebla pageble = mock(Pagebla.class);
+    when(postEntityRepository.findAll(pageble)).thenReturn(Page.empty());
+    Assertions.assertDoesNotThrow(()-> postService.list(pageble);
+     */
+
     @Test
     @DisplayName("내 피드 조회 성공")
     void testMyFeedListSuccess() {
         // Mock 데이터 생성
         Pageable pageable = PageRequest.of(0, 10);
         UserEntity userEntity = UserEntityFixture.get("user1", "password");
+
         List<PostEntity> postEntities = List.of(
                 PostEntityFixture.get("user1", 1L),
                 PostEntityFixture.get("user1", 2L)
@@ -300,8 +311,8 @@ public class PostServiceTest {
         Page<PostEntity> postEntityPage = new PageImpl<>(postEntities);
 
         // Mocking
-        when(userEntityRepository.findByUserName("user1")).thenReturn(Optional.of(userEntity));
-        when(postEntityRepository.findAllByUserId(userEntity, pageable)).thenReturn(postEntityPage);
+        when(userEntityRepository.findByUserName("user1")).thenReturn(Optional.of(userEntity));    //findByUserName(any())).
+        when(postEntityRepository.findAllByUserId(1L, pageable)).thenReturn(postEntityPage);
 
         // 서비스 호출
         Page<Post> result = postService.myList("user1", pageable);

@@ -1,6 +1,6 @@
 package com.seeyoungryu.connecti.config.filter;
 
-import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
+import com.seeyoungryu.connecti.service.JwtAuthenticationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,58 +10,49 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * JwtTokenFilter: JWT 인증 필터
+ * - HTTP 요청에서 JWT를 추출하고 검증 서비스에 위임
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
-    private final String secretKey;
+    private final JwtAuthenticationService jwtAuthenticationService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-
         final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
+        // Authorization 헤더가 없거나 Bearer로 시작하지 않는 경우
         if (header == null || !header.startsWith("Bearer ")) {
-            log.error("Invalid Authorization header. Header is null or doesn't start with Bearer");
-            response.setStatus(401);
-            response.getWriter().write("Invalid or missing token");
+            chain.doFilter(request, response); // JWT가 없으면 다음 필터로 진행
             return;
         }
 
+        String token = header.substring(7); // "Bearer " 부분 제거
         try {
-            final String token = header.substring(7).trim();
+            // JWT 검증 및 사용자 이름 추출
+            String username = jwtAuthenticationService.validateAndExtractUsername(token);
 
-            if (JwtTokenUtils.isTokenExpired(token, secretKey)) {
-                log.error("JWT token is expired");
-                response.setStatus(401);
-                response.getWriter().write("Expired token");
-                return;
-            }
-
-            String userName = JwtTokenUtils.getUsernameFromToken(token, secretKey);
-
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+            // 인증 객체 생성 및 SecurityContext 설정
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
+                    username, null, null
+            );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } catch (Exception e) {
-            log.error("Error while processing JWT token", e);
-            response.setStatus(401);
-            response.getWriter().write("Invalid token");
-            return;
+            log.error("JWT Token validation failed: {}", e.getMessage());
+            SecurityContextHolder.clearContext(); // 인증 실패 시 SecurityContext 초기화
         }
 
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response); // 다음 필터로 진행
     }
 }
