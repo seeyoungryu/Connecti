@@ -332,8 +332,6 @@ public class PostControllerTest {
     }
 
 
-
-
     /*
      * 게시물 좋아요 테스트
      */
@@ -395,4 +393,4 @@ public class PostControllerTest {
 }
 
 
-}
+
