@@ -2,11 +2,15 @@ package com.seeyoungryu.connecti.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seeyoungryu.connecti.config.filter.JwtAuthenticationFilter;
+import com.seeyoungryu.connecti.controller.request.CommentCreateRequest;
 import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
 import com.seeyoungryu.connecti.controller.request.PostModifyRequest;
+import com.seeyoungryu.connecti.controller.response.CommentResponse;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.Post;
+import com.seeyoungryu.connecti.service.CommentService;
+import com.seeyoungryu.connecti.service.PostLikeService;
 import com.seeyoungryu.connecti.service.PostService;
 import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +50,12 @@ public class PostControllerTest {
     PostService postService;
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private PostLikeService postLikeService; //add : 좋아요 서비스 추가
+
+    @MockBean
+    private CommentService commentService; //add : 댓글 서비스 추가
 
     @Autowired
     private MockMvc mockMvc;
@@ -320,4 +330,69 @@ public class PostControllerTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
+
+
+
+
+    /*
+     * 게시물 좋아요 테스트
+     */
+    @Test
+    @WithMockUser(username = "testUser")
+    @DisplayName("게시물 좋아요 성공")
+    void likePost_Success() throws Exception {
+        mockMvc.perform(post("/api/v1/posts/1/like")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "testUser")
+    @DisplayName("게시물 좋아요 취소 성공")
+    void unlikePost_Success() throws Exception {
+        mockMvc.perform(delete("/api/v1/posts/1/like")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    /*
+     * 게시물 댓글 테스트
+     */
+    @Test
+    @WithMockUser(username = "testUser")
+    @DisplayName("댓글 작성 성공")
+    void createComment_Success() throws Exception {
+        mockMvc.perform(post("/api/v1/posts/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new CommentCreateRequest("This is a comment"))))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "testUser")
+    @DisplayName("댓글 목록 조회 - 페이지네이션 적용")
+    void getComments_Success() throws Exception {
+        Page<CommentResponse> mockPage = new PageImpl<>(List.of(
+                new CommentResponse(1L, "testUser", "댓글 내용 1"),
+                new CommentResponse(2L, "testUser", "댓글 내용 2")
+        ));
+
+        when(commentService.getComments(eq(1L), any())).thenReturn(mockPage);
+
+        mockMvc.perform(get("/api/v1/posts/1/comments")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].content").value("댓글 내용 1"))
+                .andExpect(jsonPath("$.content[1].content").value("댓글 내용 2"));
+    }
+}
+
+
 }

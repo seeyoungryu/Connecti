@@ -78,6 +78,38 @@ public class PostController {
         return Response.success(postService.myList(authentication.getName(), pageable).map(PostResponse::fromPost));
     }
 
+
+    /*
+    좋아요 기능
+     */
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Void> likePost(@PathVariable Long postId, Authentication authentication) {
+        postLikeService.likePost(authentication.getName(), postId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{postId}/like")
+    public ResponseEntity<Void> unlikePost(@PathVariable Long postId, Authentication authentication) {
+        postLikeService.unlikePost(authentication.getName(), postId);
+        return ResponseEntity.ok().build();
+    }
+
+
+    /*
+    댓글 기능
+     */
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<Void> createComment(@PathVariable Long postId, @RequestBody CommentCreateRequest request, Authentication authentication) {
+        commentService.createComment(postId, authentication.getName(), request.getContent());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<Page<CommentResponse>> getComments(@PathVariable Long postId, Pageable pageable) {
+        return ResponseEntity.ok(commentService.getComments(postId, pageable));
+    }
+
+
 }
 
 

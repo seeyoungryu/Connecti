@@ -40,6 +40,12 @@ public class PostServiceTest {
     @MockBean
     UserEntityRepository userEntityRepository;
 
+    @MockBean
+    PostLikeService postLikeService; // add : 좋아요 서비스 추가
+
+    @MockBean
+    CommentEntityRepository commentEntityRepository; // add : 댓글 서비스 추가
+
 
     @Test
     @DisplayName("Post 생성 성공")
@@ -342,6 +348,160 @@ public class PostServiceTest {
         );
         Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
     }
+
+
+
+
+        /*
+         * 게시물 좋아요 테스트
+         */
+        @Test
+        @DisplayName("게시물 좋아요 성공")
+        void testLikePostSuccess() {
+            String userName = "testUser";
+            Long postId = 1L;
+
+            PostEntity postEntity = PostEntityFixture.get(userName, postId);
+            UserEntity userEntity = postEntity.getUser();
+
+            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+            when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+            Assertions.assertDoesNotThrow(() -> postService.likePost(userName, postId));
+        }
+
+        @Test
+        @DisplayName("게시물 좋아요 취소 성공")
+        void testUnlikePostSuccess() {
+            String userName = "testUser";
+            Long postId = 1L;
+
+            PostEntity postEntity = PostEntityFixture.get(userName, postId);
+            UserEntity userEntity = postEntity.getUser();
+
+            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+            when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+            Assertions.assertDoesNotThrow(() -> postService.unlikePost(userName, postId));
+        }
+
+        /*
+         * 댓글 작성 테스트
+         */
+        @Test
+        @DisplayName("댓글 작성 성공")
+        void testCreateCommentSuccess() {
+            String userName = "testUser";
+            Long postId = 1L;
+            String commentContent = "This is a comment";
+
+            PostEntity postEntity = PostEntityFixture.get(userName, postId);
+            UserEntity userEntity = postEntity.getUser();
+
+            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+            when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+            when(commentEntityRepository.save(any())).thenReturn(mock(CommentEntity.class));
+
+            Assertions.assertDoesNotThrow(() -> postService.createComment(userName, postId, commentContent));
+        }
+
+        /*
+         * 댓글 목록 조회 테스트 (페이지네이션 적용)
+         */
+        @Test
+        @DisplayName("댓글 목록 조회 - 페이지네이션 적용")
+        void testGetCommentsSuccess() {
+            Long postId = 1L;
+            Pageable pageable = PageRequest.of(0, 10);
+
+            List<CommentEntity> commentEntities = List.of(
+                    new CommentEntity(1L, "user1", "댓글 내용 1", null, null, null),
+                    new CommentEntity(2L, "user2", "댓글 내용 2", null, null, null)
+            );
+            Page<CommentEntity> commentPage = new PageImpl<>(commentEntities);
+
+            when(commentEntityRepository.findAllByPostId(eq(postId), any(Pageable.class))).thenReturn(commentPage);
+
+            Page<Comment> result = postService.getComments(postId, pageable);
+
+            Assertions.assertEquals(2, result.getContent().size());
+            Assertions.assertEquals("댓글 내용 1", result.getContent().get(0).getContent());
+            Assertions.assertEquals("댓글 내용 2", result.getContent().get(1).getContent());
+        }
+
+        /*
+         * 게시물 좋아요 실패 - 게시물 없음
+         */
+        @Test
+        @DisplayName("게시물 좋아요 실패 - 게시물 없음")
+        void testLikePostErrorPostNotFound() {
+            String userName = "testUser";
+            Long postId = 1L;
+
+            when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                    () -> postService.likePost(userName, postId));
+
+            Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        }
+
+        /*
+         * 게시물 좋아요 실패 - 유저 없음
+         */
+        @Test
+        @DisplayName("게시물 좋아요 실패 - 유저 없음")
+        void testLikePostErrorUserNotFound() {
+            String userName = "testUser";
+            Long postId = 1L;
+
+            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
+
+            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                    () -> postService.likePost(userName, postId));
+
+            Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        }
+
+        /*
+         * 댓글 작성 실패 - 게시물 없음
+         */
+        @Test
+        @DisplayName("댓글 작성 실패 - 게시물 없음")
+        void testCreateCommentErrorPostNotFound() {
+            String userName = "testUser";
+            Long postId = 1L;
+            String commentContent = "This is a comment";
+
+            when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                    () -> postService.createComment(userName, postId, commentContent));
+
+            Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        }
+
+        /*
+         * 댓글 작성 실패 - 유저 없음
+         */
+        @Test
+        @DisplayName("댓글 작성 실패 - 유저 없음")
+        void testCreateCommentErrorUserNotFound() {
+            String userName = "testUser";
+            Long postId = 1L;
+            String commentContent = "This is a comment";
+
+            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
+
+            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                    () -> postService.createComment(userName, postId, commentContent));
+
+            Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        }
+    }
+
+
+
 }
 
 
