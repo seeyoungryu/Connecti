@@ -10,6 +10,7 @@ import org.hibernate.annotations.Where;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
 
 // UserEntity - JPA 엔티티 클래스
@@ -33,20 +34,26 @@ public class UserEntity {
     @Column
     private String password;
 
+
+    @OneToMany(mappedBy = "user")
+    private List<PostEntity> posts;
     @Setter
     @Enumerated(EnumType.STRING)   //@Enumerated 설정 : UserRole 열거형을 데이터베이스에 문자열로 저장하겠다는 설정 -> 역할(Role)을 직관적으로 확인
     private UserRole role = UserRole.USER;
-    //@Column을 추가하지 않더라도 role 필드는 데이터베이스 컬럼으로 자동으로 매핑됨
-
     @Setter
     @Column(name = "registered_at")
     private Timestamp registeredAt;
-
+    //@Column을 추가하지 않더라도 role 필드는 데이터베이스 컬럼으로 자동으로 매핑됨
     @Column(name = "updated_at")
     private Timestamp updatedAt;
-
     @Column(name = "deleted_at")
     private Timestamp deletedAt;
+
+    // comment ~ 생성자 추가
+    public UserEntity(String userName, String password) {
+        this.userName = userName;
+        this.password = password;
+    }
 
     //of ~ *객체 생성(엔티티 자체)을 위해 사용
     //서비스 계층 -> 데이터베이스: 엔티티 객체를 생성해 데이터베이스에 저장하는 흐름을 위한 메서드
@@ -66,7 +73,13 @@ public class UserEntity {
     void updatedAt() {
         this.updatedAt = Timestamp.from(Instant.now());
     }
+
+
 }
+
+
+
+
 
 
 /*

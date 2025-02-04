@@ -6,8 +6,10 @@ import com.seeyoungryu.connecti.fixture.PostEntityFixture;
 import com.seeyoungryu.connecti.fixture.TestInfoFixture;
 import com.seeyoungryu.connecti.fixture.UserEntityFixture;
 import com.seeyoungryu.connecti.model.Post;
+import com.seeyoungryu.connecti.model.entity.CommentEntity;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
+import com.seeyoungryu.connecti.repository.CommentEntityRepository;
 import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import org.junit.jupiter.api.Assertions;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +48,9 @@ public class PostServiceTest {
 
     @MockBean
     CommentEntityRepository commentEntityRepository; // add : 댓글 서비스 추가
+
+    @MockBean
+    CommentEntity commentEntity;
 
 
     @Test
@@ -350,158 +356,164 @@ public class PostServiceTest {
     }
 
 
+    /*
+     * 게시물 좋아요 테스트
+     */
+    @Test
+    @DisplayName("게시물 좋아요 성공")
+    void testLikePostSuccess() {
+        String userName = "testUser";
+        Long postId = 1L;
+
+        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+        UserEntity userEntity = postEntity.getUser();
+
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        Assertions.assertDoesNotThrow(() -> postService.likePost(userName, postId));
+    }
+
+    @Test
+    @DisplayName("게시물 좋아요 취소 성공")
+    void testUnlikePostSuccess() {
+        String userName = "testUser";
+        Long postId = 1L;
+
+        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+        UserEntity userEntity = postEntity.getUser();
+
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        Assertions.assertDoesNotThrow(() -> postService.unlikePost(userName, postId));
+    }
+
+    /*
+     * 댓글 작성 테스트
+     */
+    @Test
+    @DisplayName("댓글 작성 성공")
+    void testCreateCommentSuccess() {
+        String userName = "testUser";
+        Long postId = 1L;
+        String commentContent = "This is a comment";
+
+        PostEntity postEntity = PostEntityFixture.get(userName, postId);
+        UserEntity userEntity = postEntity.getUser();
+
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+        when(commentEntityRepository.save(any())).thenReturn(mock(CommentEntity.class));
+
+        Assertions.assertDoesNotThrow(() -> postService.createComment(userName, postId, commentContent));
+    }
+
+    /*
+     * 댓글 목록 조회 테스트 (페이지네이션 적용)
+     */
+    @Test
+    @DisplayName("댓글 목록 조회 - 페이지네이션 적용")
+    void testGetCommentsSuccess() {
+        Long postId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+
+//            //수정된 CommentEntity 생성 (id 추가)
+//            PostEntity mockPost = mock(PostEntity.class);
+//            UserEntity mockUser1 = new UserEntity("user1", "password");
+//            UserEntity mockUser2 = new UserEntity("user2", "password");
+        PostEntity mockPost = mock(PostEntity.class);
+        UserEntity mockUser1 = mock(UserEntity.class);
+        UserEntity mockUser2 = mock(UserEntity.class);
 
 
-        /*
-         * 게시물 좋아요 테스트
-         */
-        @Test
-        @DisplayName("게시물 좋아요 성공")
-        void testLikePostSuccess() {
-            String userName = "testUser";
-            Long postId = 1L;
+        List<CommentEntity> commentEntities = List.of(
+                new CommentEntity(1L, "댓글 내용 1", mockPost, mockUser1),
+                new CommentEntity(2L, "댓글 내용 2", mockPost, mockUser2)
+        );
 
-            PostEntity postEntity = PostEntityFixture.get(userName, postId);
-            UserEntity userEntity = postEntity.getUser();
+        Page<CommentEntity> commentPage = new PageImpl<>(commentEntities);
 
-            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
-            when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+        when(commentEntityRepository.findAllByPostId(eq(postId), any(Pageable.class))).thenReturn(commentPage);
 
-            Assertions.assertDoesNotThrow(() -> postService.likePost(userName, postId));
-        }
+        // postService.getComments()에서 CommentEntity를 반환하고, 이를 DTO(Comment)로 변환하도록 변경
+        Page<CommentEntity> result = postService.getComments(postId, pageable);
 
-        @Test
-        @DisplayName("게시물 좋아요 취소 성공")
-        void testUnlikePostSuccess() {
-            String userName = "testUser";
-            Long postId = 1L;
-
-            PostEntity postEntity = PostEntityFixture.get(userName, postId);
-            UserEntity userEntity = postEntity.getUser();
-
-            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
-            when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
-
-            Assertions.assertDoesNotThrow(() -> postService.unlikePost(userName, postId));
-        }
-
-        /*
-         * 댓글 작성 테스트
-         */
-        @Test
-        @DisplayName("댓글 작성 성공")
-        void testCreateCommentSuccess() {
-            String userName = "testUser";
-            Long postId = 1L;
-            String commentContent = "This is a comment";
-
-            PostEntity postEntity = PostEntityFixture.get(userName, postId);
-            UserEntity userEntity = postEntity.getUser();
-
-            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
-            when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
-            when(commentEntityRepository.save(any())).thenReturn(mock(CommentEntity.class));
-
-            Assertions.assertDoesNotThrow(() -> postService.createComment(userName, postId, commentContent));
-        }
-
-        /*
-         * 댓글 목록 조회 테스트 (페이지네이션 적용)
-         */
-        @Test
-        @DisplayName("댓글 목록 조회 - 페이지네이션 적용")
-        void testGetCommentsSuccess() {
-            Long postId = 1L;
-            Pageable pageable = PageRequest.of(0, 10);
-
-            List<CommentEntity> commentEntities = List.of(
-                    new CommentEntity(1L, "user1", "댓글 내용 1", null, null, null),
-                    new CommentEntity(2L, "user2", "댓글 내용 2", null, null, null)
-            );
-            Page<CommentEntity> commentPage = new PageImpl<>(commentEntities);
-
-            when(commentEntityRepository.findAllByPostId(eq(postId), any(Pageable.class))).thenReturn(commentPage);
-
-            Page<Comment> result = postService.getComments(postId, pageable);
-
-            Assertions.assertEquals(2, result.getContent().size());
-            Assertions.assertEquals("댓글 내용 1", result.getContent().get(0).getContent());
-            Assertions.assertEquals("댓글 내용 2", result.getContent().get(1).getContent());
-        }
-
-        /*
-         * 게시물 좋아요 실패 - 게시물 없음
-         */
-        @Test
-        @DisplayName("게시물 좋아요 실패 - 게시물 없음")
-        void testLikePostErrorPostNotFound() {
-            String userName = "testUser";
-            Long postId = 1L;
-
-            when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
-
-            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                    () -> postService.likePost(userName, postId));
-
-            Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
-        }
-
-        /*
-         * 게시물 좋아요 실패 - 유저 없음
-         */
-        @Test
-        @DisplayName("게시물 좋아요 실패 - 유저 없음")
-        void testLikePostErrorUserNotFound() {
-            String userName = "testUser";
-            Long postId = 1L;
-
-            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
-
-            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                    () -> postService.likePost(userName, postId));
-
-            Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
-        }
-
-        /*
-         * 댓글 작성 실패 - 게시물 없음
-         */
-        @Test
-        @DisplayName("댓글 작성 실패 - 게시물 없음")
-        void testCreateCommentErrorPostNotFound() {
-            String userName = "testUser";
-            Long postId = 1L;
-            String commentContent = "This is a comment";
-
-            when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
-
-            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                    () -> postService.createComment(userName, postId, commentContent));
-
-            Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
-        }
-
-        /*
-         * 댓글 작성 실패 - 유저 없음
-         */
-        @Test
-        @DisplayName("댓글 작성 실패 - 유저 없음")
-        void testCreateCommentErrorUserNotFound() {
-            String userName = "testUser";
-            Long postId = 1L;
-            String commentContent = "This is a comment";
-
-            when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
-
-            ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                    () -> postService.createComment(userName, postId, commentContent));
-
-            Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
-        }
+        Assertions.assertEquals(2, result.getContent().size());
+        Assertions.assertEquals("댓글 내용 1", result.getContent().get(0).getContent());
+        Assertions.assertEquals("댓글 내용 2", result.getContent().get(1).getContent());
     }
 
 
+    /*
+     * 게시물 좋아요 실패 - 게시물 없음
+     */
+    @Test
+    @DisplayName("게시물 좋아요 실패 - 게시물 없음")
+    void testLikePostErrorPostNotFound() {
+        String userName = "testUser";
+        Long postId = 1L;
 
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                () -> postService.likePost(userName, postId));
+
+        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+    }
+
+    /*
+     * 게시물 좋아요 실패 - 유저 없음
+     */
+    @Test
+    @DisplayName("게시물 좋아요 실패 - 유저 없음")
+    void testLikePostErrorUserNotFound() {
+        String userName = "testUser";
+        Long postId = 1L;
+
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
+
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                () -> postService.likePost(userName, postId));
+
+        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+    }
+
+    /*
+     * 댓글 작성 실패 - 게시물 없음
+     */
+    @Test
+    @DisplayName("댓글 작성 실패 - 게시물 없음")
+    void testCreateCommentErrorPostNotFound() {
+        String userName = "testUser";
+        Long postId = 1L;
+        String commentContent = "This is a comment";
+
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                () -> postService.createComment(userName, postId, commentContent));
+
+        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+    }
+
+    /*
+     * 댓글 작성 실패 - 유저 없음
+     */
+    @Test
+    @DisplayName("댓글 작성 실패 - 유저 없음")
+    void testCreateCommentErrorUserNotFound() {
+        String userName = "testUser";
+        Long postId = 1L;
+        String commentContent = "This is a comment";
+
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
+
+        ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
+                () -> postService.createComment(userName, postId, commentContent));
+
+        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+    }
 }
 
 

@@ -3,8 +3,10 @@ package com.seeyoungryu.connecti.service;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.Post;
+import com.seeyoungryu.connecti.model.entity.CommentEntity;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
+import com.seeyoungryu.connecti.repository.CommentEntityRepository;
 import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class PostService {
 
     private final PostEntityRepository postEntityRepository;
     private final UserEntityRepository userEntityRepository;
+    private final CommentEntityRepository commentEntityRepository;
 
     // 사용자 조회 로직 추출
     private UserEntity findUserByName(String userName) {
@@ -94,5 +97,65 @@ public class PostService {
                 .map(Post::fromEntity);
     }
 
+
+    /*
+     게시물 좋아요 기능
+     */
+    @Transactional
+    public void likePost(String username, Long postId) {
+        UserEntity user = findUserByName(username);
+        PostEntity post = findPostById(postId);
+
+        // 좋아요 추가
+        post.likePost(user);
+        postEntityRepository.save(post);
+    }
+
+    /*
+     게시물 좋아요 취소 기능
+     */
+    @Transactional
+    public void unlikePost(String username, Long postId) {
+        UserEntity user = findUserByName(username);
+        PostEntity post = findPostById(postId);
+
+        // 좋아요 취소
+        post.unlikePost(user);
+        postEntityRepository.save(post);
+    }
+
+
+    /*
+    댓글
+     */
+    @Transactional
+    public PostEntity createComment(String title, String body, String userName) {
+        UserEntity userEntity = findUserByName(userName);
+        PostEntity postEntity = PostEntity.of(title, body, userEntity);
+        return postEntityRepository.save(postEntity);
+    }
+
+
+    /*
+    add : 댓글 작성 기능 추가
+     */
+    @Transactional
+    public void createComment(String username, Long postId, String content) {
+        UserEntity user = findUserByName(username);
+        PostEntity post = findPostById(postId);
+
+        CommentEntity comment = new CommentEntity(content, post, user);
+        commentEntityRepository.save(comment);
+    }
+
+    /*
+     add : 댓글 목록 조회 (페이지네이션 적용)
+     */
+    @Transactional
+    public Page<CommentEntity> getComments(Long postId, Pageable pageable) {
+        findPostById(postId); // 게시물 존재 여부 확인
+        return commentEntityRepository.findAllByPostId(postId, pageable);
+    }
 }
+
 

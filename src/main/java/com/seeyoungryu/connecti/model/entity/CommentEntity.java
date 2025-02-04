@@ -21,7 +21,15 @@ public class CommentEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user;
 
-    public CommentEntity(String content, PostEntity post, UserEntity user) {
+//    public CommentEntity(String content, PostEntity post, UserEntity user) {
+//        this.content = content;
+//        this.post = post;
+//        this.user = user;
+//    }
+
+    // ID 포함한 생성자 추가 (테스트용)
+    public CommentEntity(Long id, String content, PostEntity post, UserEntity user) {
+        this.id = id;  //하드코딩
         this.content = content;
         this.post = post;
         this.user = user;
