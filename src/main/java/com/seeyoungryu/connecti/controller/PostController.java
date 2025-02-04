@@ -1,11 +1,14 @@
 package com.seeyoungryu.connecti.controller;
 
+import com.seeyoungryu.connecti.controller.request.CommentCreateRequest;
 import com.seeyoungryu.connecti.controller.request.PostCreateRequest;
 import com.seeyoungryu.connecti.controller.request.PostModifyRequest;
+import com.seeyoungryu.connecti.controller.response.CommentResponse;
 import com.seeyoungryu.connecti.controller.response.PostResponse;
 import com.seeyoungryu.connecti.controller.response.Response;
 import com.seeyoungryu.connecti.model.Post;
-import com.seeyoungryu.connecti.repository.PostEntityRepository;
+import com.seeyoungryu.connecti.service.CommentService;
+import com.seeyoungryu.connecti.service.PostLikeService;
 import com.seeyoungryu.connecti.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +25,8 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
-    private final PostEntityRepository postEntityRepository;
+    private final PostLikeService postLikeService;
+    private final CommentService commentService;
 
 
     /*
