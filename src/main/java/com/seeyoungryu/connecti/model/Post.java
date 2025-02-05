@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @RequiredArgsConstructor
-public class Post { //DTO 클래스 (데이터 가공 후 postEntity 반환 (postEntity로 변환)
+public class Post { //DTO 클래스 (PostEntity의 데이터를 기반으로 새로운 Post 객체를 생성하여 반환)
+
 
     private final Long id;
     private final String title;
@@ -22,9 +23,9 @@ public class Post { //DTO 클래스 (데이터 가공 후 postEntity 반환 (pos
                 postEntity.getId(),
                 postEntity.getTitle(),
                 postEntity.getBody(),
-                postEntity.getRegisteredAt().toLocalDateTime(),
-                postEntity.getUpdatedAt().toLocalDateTime(),
-                postEntity.getDeletedAt() != null ? postEntity.getDeletedAt().toLocalDateTime() : null //null 체크 추가
+                postEntity.getRegisteredAt(),
+                postEntity.getUpdatedAt(),
+                postEntity.getDeletedAt() != null ? postEntity.getDeletedAt() : null //null 체크 추가
         );
     }
 }

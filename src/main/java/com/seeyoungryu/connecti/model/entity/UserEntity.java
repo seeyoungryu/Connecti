@@ -38,7 +38,7 @@ public class UserEntity {
     @OneToMany(mappedBy = "user")
     private List<PostEntity> posts;
     @Setter
-    @Enumerated(EnumType.STRING)   //@Enumerated 설정 : UserRole 열거형을 데이터베이스에 문자열로 저장하겠다는 설정 -> 역할(Role)을 직관적으로 확인
+    @Enumerated(EnumType.STRING)   //UserRole 열거형을 데이터베이스에 문자열로 저장하겠다는 설정
     private UserRole role = UserRole.USER;
     @Setter
     @Column(name = "registered_at")
@@ -77,13 +77,3 @@ public class UserEntity {
 
 }
 
-
-
-
-
-
-/*
-@SQLDelete: 데이터 삭제 시 실제로는 deleted_at 필드만 업데이트하여 *논리적 삭제를 구현 (소프트 딜리트)
-@Where(clause = "deleted_at IS NULL"): deleted_at 필드가 NULL인 데이터만 조회하도록 설정하여, 논리적으로 삭제된 데이터를 제외하고 조회
-@PrePersist와 @PreUpdate: 엔티티가 <<처음 저장되거나 업데이트>>될 때 <<자동>>으로 registeredAt과 updatedAt을 설정합니다.
- */

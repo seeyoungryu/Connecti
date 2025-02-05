@@ -5,44 +5,49 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @NoArgsConstructor
 @Table(name = "posts")
-@Entity
-@SQLDelete(sql = "UPDATE posts SET deleted_at = NOW() WHERE id = ?")
+@Entity // JPA 관리 객체 클래스
+@SQLDelete(sql = "UPDATE posts SET deleted_at = NOW() WHERE id = ?") // Soft Delete
 @Where(clause = "deleted_at IS NULL")
+@EntityListeners(AuditingEntityListener.class) // JPA Auditing 활성화
 public class PostEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //@Todo : MySQL에서는 IDENTITY가 적절하지만, *대규모 트랜잭션*에서는 SEQUENCE가 더 좋을 수 있다?
     private Long id;
 
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String body;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
+    @CreatedDate
     @Column(name = "registered_at", updatable = false)
-    private Timestamp registeredAt;
+    private LocalDateTime registeredAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "deleted_at")
-    private Timestamp deletedAt;
+    private LocalDateTime deletedAt;
 
-    // add : 좋아요한 사용자 목록 (ManyToMany 관계 설정)
     @ManyToMany
     @JoinTable(
             name = "post_likes",
@@ -50,6 +55,7 @@ public class PostEntity {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<UserEntity> likedUsers = new HashSet<>();
+
 
     public PostEntity(String title, String body, UserEntity user) {
         this.title = title;
@@ -61,35 +67,19 @@ public class PostEntity {
         return new PostEntity(title, body, user);
     }
 
-    @PrePersist
-    protected void registeredAt() {
-        this.registeredAt = Timestamp.from(Instant.now());
+    public boolean likePost(UserEntity user) {
+        return this.likedUsers.add(user); // 추가 성공 여부 반환
     }
 
-    @PreUpdate
-    protected void updatedAt() {
-        this.updatedAt = Timestamp.from(Instant.now());
+    public boolean unlikePost(UserEntity user) {
+        return this.likedUsers.remove(user); // 삭제 성공 여부 반환
     }
 
-    //게시물 좋아요 기능
-    public void likePost(UserEntity user) {
-        this.likedUsers.add(user); // 좋아요한 사용자 추가
-    }
-
-    //게시물 좋아요 취소 기능
-    public void unlikePost(UserEntity user) {
-        this.likedUsers.remove(user); // 좋아요한 사용자 제거
-    }
-
-
-    // 게시글 제목 수정
     public void updateTitle(String title) {
         this.title = title;
     }
 
-    // 게시글 내용 수정
     public void updateBody(String body) {
         this.body = body;
     }
-    
 }
