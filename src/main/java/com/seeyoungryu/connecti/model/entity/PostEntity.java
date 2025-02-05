@@ -80,4 +80,16 @@ public class PostEntity {
     public void unlikePost(UserEntity user) {
         this.likedUsers.remove(user); // 좋아요한 사용자 제거
     }
+
+
+    // 게시글 제목 수정
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
+    // 게시글 내용 수정
+    public void updateBody(String body) {
+        this.body = body;
+    }
+    
 }

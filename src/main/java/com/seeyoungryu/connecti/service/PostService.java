@@ -65,8 +65,8 @@ public class PostService {
         validatePermission(userEntity, postEntity, userName, postId);
 
         // 게시글 수정
-        postEntity.setTitle(title);
-        postEntity.setBody(body);
+        postEntity.updateTitle(title);
+        postEntity.updateBody(body);
 
         // 수정된 엔티티 저장 및 반환
         PostEntity updatedPostEntity = postEntityRepository.saveAndFlush(postEntity);
@@ -144,7 +144,7 @@ public class PostService {
         UserEntity user = findUserByName(username);
         PostEntity post = findPostById(postId);
 
-        CommentEntity comment = new CommentEntity(content, post, user);
+        CommentEntity comment = new CommentEntity(1L, content, post, user);
         commentEntityRepository.save(comment);
     }
 
