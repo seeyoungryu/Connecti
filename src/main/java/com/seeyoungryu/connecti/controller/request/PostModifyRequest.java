@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostModifyRequest {
-    public Long postId;
     private String title;
     private String body;
 
