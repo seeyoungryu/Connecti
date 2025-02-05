@@ -25,19 +25,27 @@ public class PostService {
     private final UserEntityRepository userEntityRepository;
     private final CommentEntityRepository commentEntityRepository;
 
-    // 사용자 조회 로직 추출
+    /*
+    유틸 메서드 (공통로직 분리)
+     */
     private UserEntity findUserByName(String userName) {
-        return userEntityRepository.findByUserName(userName).orElseThrow(() ->
-                new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("username %s not found", userName)));
+        return userEntityRepository.findByUserName(userName)
+                .orElseThrow(() -> new ConnectiApplicationException(
+                        ErrorCode.USER_NOT_FOUND,
+                        String.format("username %s not found", userName)
+                ));
     }
 
-    // 게시물 존재 여부 확인 로직 추출
+
     private PostEntity findPostById(Long postId) {
-        return postEntityRepository.findById(postId).orElseThrow(() ->
-                new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s not found", postId)));
+        return postEntityRepository.findById(postId)
+                .orElseThrow(() -> new ConnectiApplicationException(
+                        ErrorCode.POST_NOT_FOUND,
+                        String.format("%s not found", postId)
+                ));
     }
 
-    // 권한 확인 로직 추출
+
     private void validatePermission(UserEntity userEntity, PostEntity postEntity, String userName, Long postId) {
         if (!postEntity.getUser().equals(userEntity)) {
             throw new ConnectiApplicationException(
@@ -47,30 +55,25 @@ public class PostService {
         }
     }
 
+
     @Transactional
-    public PostEntity createPost(String title, String body, String userName) {
+    public Post createPost(String title, String body, String userName) {
         UserEntity userEntity = findUserByName(userName);
         PostEntity postEntity = PostEntity.of(title, body, userEntity);
-        return postEntityRepository.save(postEntity);
+        return Post.fromEntity(postEntityRepository.save(postEntity)); //DTO(Post) 반환//기존 -> return postEntityRepository.save(postEntity); (엔티티 반환)
     }
-
 
     @Transactional
     public Post modifyPost(String title, String body, String userName, Long postId) {
-        // 유저와 게시글 조회
         UserEntity userEntity = findUserByName(userName);
         PostEntity postEntity = findPostById(postId);
 
-        // 권한 검증
         validatePermission(userEntity, postEntity, userName, postId);
 
-        // 게시글 수정
         postEntity.updateTitle(title);
         postEntity.updateBody(body);
 
-        // 수정된 엔티티 저장 및 반환
-        PostEntity updatedPostEntity = postEntityRepository.saveAndFlush(postEntity);
-        return Post.fromEntity(updatedPostEntity);
+        return Post.fromEntity(postEntity);
     }
 
 
@@ -83,62 +86,35 @@ public class PostService {
         postEntityRepository.delete(postEntity);
     }
 
+    //엔티티가 아닌 DTO 반환 (Page<Post>)
     @Transactional
-    public Page<Post> list(Pageable pageable) { //엔티티는 서비스단에서 반환할때 사용 안하기로..?
+    public Page<Post> list(Pageable pageable) {
         return postEntityRepository.findAll(pageable).map(Post::fromEntity);
     }
-
 
     @Transactional
     public Page<Post> myList(String userName, Pageable pageable) {
         UserEntity userEntity = findUserByName(userName);
-
         return postEntityRepository.findAllByUserId(userEntity.getId(), pageable)
                 .map(Post::fromEntity);
     }
 
-
-    /*
-     게시물 좋아요 기능
-     */
     @Transactional
-    public void likePost(String username, Long postId) {
+    public boolean likePost(String username, Long postId) {
         UserEntity user = findUserByName(username);
         PostEntity post = findPostById(postId);
 
-        // 좋아요 추가
-        post.likePost(user);
-        postEntityRepository.save(post);
+        return post.likePost(user);
     }
 
-    /*
-     게시물 좋아요 취소 기능
-     */
     @Transactional
-    public void unlikePost(String username, Long postId) {
+    public boolean unlikePost(String username, Long postId) {
         UserEntity user = findUserByName(username);
         PostEntity post = findPostById(postId);
 
-        // 좋아요 취소
-        post.unlikePost(user);
-        postEntityRepository.save(post);
+        return post.unlikePost(user);
     }
 
-
-    /*
-    댓글
-     */
-    @Transactional
-    public PostEntity createComment(String title, String body, String userName) {
-        UserEntity userEntity = findUserByName(userName);
-        PostEntity postEntity = PostEntity.of(title, body, userEntity);
-        return postEntityRepository.save(postEntity);
-    }
-
-
-    /*
-    add : 댓글 작성 기능 추가
-     */
     @Transactional
     public void createComment(String username, Long postId, String content) {
         UserEntity user = findUserByName(username);
@@ -148,14 +124,10 @@ public class PostService {
         commentEntityRepository.save(comment);
     }
 
-    /*
-     add : 댓글 목록 조회 (페이지네이션 적용)
-     */
+    //Todo 댓글 목록 조회 시 엔티티가 아닌 DTO 반환하도록 수정해야하는지?
     @Transactional
     public Page<CommentEntity> getComments(Long postId, Pageable pageable) {
-        findPostById(postId); // 게시물 존재 여부 확인
+        findPostById(postId);
         return commentEntityRepository.findAllByPostId(postId, pageable);
     }
 }
-
-
