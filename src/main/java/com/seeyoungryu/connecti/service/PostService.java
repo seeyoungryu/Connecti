@@ -26,7 +26,7 @@ public class PostService {
     private final CommentEntityRepository commentEntityRepository;
 
     /*
-    유틸 메서드 (공통로직 분리)
+    공통 유틸 메서드 (중복 로직 분리)
      */
     private UserEntity findUserByName(String userName) {
         return userEntityRepository.findByUserName(userName)
@@ -46,29 +46,41 @@ public class PostService {
     }
 
 
-    private void validatePermission(UserEntity userEntity, PostEntity postEntity, String userName, Long postId) {
-        if (!postEntity.getUser().equals(userEntity)) {
+    //    private void validatePermission(UserEntity userEntity, PostEntity postEntity, String userName, Long postId) {
+    //        if (!postEntity.getUser().equals(userEntity)) {
+    //            throw new ConnectiApplicationException(
+    //                    ErrorCode.INVALID_PERMISSION,
+    //                    String.format("%s has no permission with %s", userName, postId)
+    //            );
+    //        }
+    //    }
+
+    // validateOwnership 방식으로 개선 (범용적으로 활용 가능) -> 게시글(Post), 댓글(Comment) 모두에서 재사용 가능
+    private void validateOwnership(UserEntity owner, UserEntity requester, String entityType, Long entityId) {
+        if (!owner.equals(requester)) {
             throw new ConnectiApplicationException(
                     ErrorCode.INVALID_PERMISSION,
-                    String.format("%s has no permission with %s", userName, postId)
+                    String.format("%s has no permission to modify/delete %s with ID %d", requester.getUserName(), entityType, entityId)
             );
         }
     }
 
 
     @Transactional
-    public Post createPost(String title, String body, String userName) {
+    public PostEntity createPost(String title, String body, String userName) {
         UserEntity userEntity = findUserByName(userName);
         PostEntity postEntity = PostEntity.of(title, body, userEntity);
-        return Post.fromEntity(postEntityRepository.save(postEntity)); //DTO(Post) 반환//기존 -> return postEntityRepository.save(postEntity); (엔티티 반환)
+        return postEntityRepository.save(postEntity);
     }
+
 
     @Transactional
     public Post modifyPost(String title, String body, String userName, Long postId) {
-        UserEntity userEntity = findUserByName(userName);
+        UserEntity requester = findUserByName(userName);
         PostEntity postEntity = findPostById(postId);
+        UserEntity owner = postEntity.getUser(); // 게시글 소유자 -> Owner
 
-        validatePermission(userEntity, postEntity, userName, postId);
+        validateOwnership(owner, requester, "Post", postId);
 
         postEntity.updateTitle(title);
         postEntity.updateBody(body);
@@ -79,12 +91,15 @@ public class PostService {
 
     @Transactional
     public void deletePost(String userName, Long postId) {
-        UserEntity userEntity = findUserByName(userName);
+        UserEntity requester = findUserByName(userName);
         PostEntity postEntity = findPostById(postId);
-        validatePermission(userEntity, postEntity, userName, postId);
+        UserEntity owner = postEntity.getUser();
+
+        validateOwnership(owner, requester, "Post", postId);
 
         postEntityRepository.delete(postEntity);
     }
+
 
     //엔티티가 아닌 DTO 반환 (Page<Post>)
     @Transactional

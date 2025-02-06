@@ -154,23 +154,25 @@ public class PostServiceTest {
 
 
     @Test
-    @DisplayName("Post 수정 시 유저 미존재 에러 발생")
-    void testModifyPostErrorUserNotFound() {
+    @DisplayName("Post 수정 시 작성자 불일치 에러 발생")
+    void testModifyPostErrorUserNotOwner() {  // "유저 미존재" -> "작성자 불일치"
         String title = "title";
         String body = "body";
-        String userName = "userName";
+        String userName = "requestingUser";  // 요청한 유저
+        String ownerName = "postOwner"; // 실제 작성자
         Long postId = 1L;
 
-        PostEntity postEntity = PostEntityFixture.get(userName, postId);
-        UserEntity writer = UserEntityFixture.get(userName, "password");
+        PostEntity postEntity = PostEntityFixture.get(ownerName, postId); // 작성자가 "postOwner"
+        UserEntity requester = UserEntityFixture.get(userName, "password"); // 요청자는 "requestingUser"
 
-        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(writer));     //데이터베이스를 사용하는 로직을 모킹(mocking)하여 테스트 환경을 격리시킴.
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(requester));  // 요청자는 찾을 수 있음
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
                 () -> postService.modifyPost(title, body, userName, postId));
         Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
+
 
     @Test
     @DisplayName("Post 삭제 성공")
@@ -210,6 +212,9 @@ public class PostServiceTest {
         Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
     }
 
+
+    // Todo 유저 미존재 or 작성자 불일치 .. 코드정리
+    
     @Test
     @DisplayName("Post 삭제 시 유저 미존재 에러 발생")
     void testDeletePostErrorUserNotFound() {
@@ -231,21 +236,19 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("Post 삭제 시 작성자 불일치 에러 발생")
-    void testDeletePostErrorUserNotAuthor() {
-
-        String userName = "userName";
+    void testDeletePostErrorUserNotOwner() {  // "작성자 불일치" 명확화
+        String requesterName = "requestingUser";
+        String ownerName = "postOwner";
         Long postId = 1L;
 
-        // Fixture 사용
-        PostEntity postEntity = PostEntityFixture.get(userName, postId);
-        UserEntity otherUser = UserEntityFixture.get("otherUser", "password");
+        PostEntity postEntity = PostEntityFixture.get(ownerName, postId);
+        UserEntity requester = UserEntityFixture.get(requesterName, "password"); // 요청자는 작성자가 아님
 
-        // Mocking
-        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(otherUser));
+        when(userEntityRepository.findByUserName(requesterName)).thenReturn(Optional.of(requester));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
         ConnectiApplicationException e = Assertions.assertThrows(ConnectiApplicationException.class,
-                () -> postService.deletePost("userName", 1L));
+                () -> postService.deletePost(requesterName, postId));
         Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
 
