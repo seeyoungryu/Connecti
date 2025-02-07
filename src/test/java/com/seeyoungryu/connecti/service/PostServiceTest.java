@@ -214,7 +214,7 @@ public class PostServiceTest {
 
 
     // Todo 유저 미존재 or 작성자 불일치 .. 코드정리
-    
+
     @Test
     @DisplayName("Post 삭제 시 유저 미존재 에러 발생")
     void testDeletePostErrorUserNotFound() {

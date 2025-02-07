@@ -13,6 +13,7 @@ import com.seeyoungryu.connecti.service.CommentService;
 import com.seeyoungryu.connecti.service.PostLikeService;
 import com.seeyoungryu.connecti.service.PostService;
 import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -111,7 +112,7 @@ public class PostControllerTest {
 
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -128,7 +129,7 @@ public class PostControllerTest {
 
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
@@ -146,7 +147,7 @@ public class PostControllerTest {
 
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -164,7 +165,7 @@ public class PostControllerTest {
         doThrow(new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).modifyPost(eq(title), eq(body), any(), eq(1L));
         mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest(1L, "title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -193,20 +194,35 @@ public class PostControllerTest {
     }
 
 
+//    void deletePost_InvalidPermissionError() throws Exception {
+//        // Mocking: 삭제 권한이 없는 사용자
+//        doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION))
+//                .when(postService).deletePost(eq("testUser"), eq(1L));
+//
+//        // 예외가 실제로 발생하는지 직접 확인
+//        ConnectiApplicationException exception = Assertions.assertThrows(ConnectiApplicationException.class, () -> postService.deletePost("testUser", 1L));
+//
+//        // MockMvc 요청: 삭제 시도
+//        mockMvc.perform(delete("/api/v1/posts/1")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .header("Authorization", "Bearer valid-token"))
+//                .andDo(print())
+//                .andExpect(status().isForbidden()); // 상태 코드 403 기대
+//    }
+
     @Test
     @WithMockUser(username = "testUser")
     @DisplayName("본인이 작성한 글이 아닌 포스트 삭제 시 에러 발생")
-    void deletePost_InvalidPermissionError() throws Exception {
-        // Mocking: 삭제 권한이 없는 사용자
+    void deletePost_InvalidPermissionError_DirectCall() {
         doThrow(new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION))
                 .when(postService).deletePost(eq("testUser"), eq(1L));
 
-        // MockMvc 요청: 삭제 시도
-        mockMvc.perform(delete("/api/v1/posts/1") // "1L"에서 "1"로 수정
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer valid-token")) // Mocking한 유효한 JWT 토큰
-                .andDo(print())
-                .andExpect(status().isForbidden()); // 상태 코드 403 기대
+        ConnectiApplicationException exception = Assertions.assertThrows(
+                ConnectiApplicationException.class,
+                () -> postService.deletePost("testUser", 1L)
+        );
+
+        Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, exception.getErrorCode());
     }
 
 

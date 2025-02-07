@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
@@ -70,12 +71,16 @@ public class PostController {
     /*
     post 삭제
      */
+    //Spring Security , Enum : ROLE_USER -> Todo : @Secured("ROLE_USER")를 메서드 단위가 아닌 서비스 계층에서 적용하는 것이 더 유연함? 수정필요?
     @DeleteMapping("/{postId}")
     @Secured("ROLE_USER")
-    //Spring Security , Enum : ROLE_USER -> Todo : @Secured("ROLE_USER")를 메서드 단위가 아닌 서비스 계층에서 적용하는 것이 더 유연함? 수정필요?
-    public ApiResponse<Void> deletePost(@PathVariable Long postId, Authentication authentication) {
+    public ResponseEntity<ApiResponse<Void>> deletePost(@PathVariable Long postId, Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION);
+        }
+
         postService.deletePost(authentication.getName(), postId);
-        return ApiResponse.success(null);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success(null)); // 상태 코드 수정 (204 No Content)
     }
 
 
