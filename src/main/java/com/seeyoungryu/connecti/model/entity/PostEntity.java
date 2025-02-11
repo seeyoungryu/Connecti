@@ -26,7 +26,9 @@ public class PostEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //@Todo : MySQL에서는 IDENTITY가 적절하지만, *대규모 트랜잭션*에서는 SEQUENCE가 더 좋을 수 있다?
+    // ** MySQL에서는 기본적으로 IDENTITY가 적절하지만, 대량 트랜잭션에서는 SEQUENCE가 더 나을 수 있음 **
+    // (향후 PostgreSQL로 이전하거나 성능 최적화가 필요하면 SEQUENCE 고려 가능)
+
     private Long id;
 
     @Column(nullable = false)
