@@ -78,14 +78,24 @@ public class PostService {
     public Post modifyPost(String title, String body, String userName, Long postId) {
         UserEntity requester = findUserByName(userName);
         PostEntity postEntity = findPostById(postId);
-        UserEntity owner = postEntity.getUser(); // 게시글 소유자 -> Owner
+
+        if (postEntity == null) {
+            log.error("findPostById({}) returned null!", postId);
+            throw new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND);
+        }
+
+        UserEntity owner = postEntity.getUser();
 
         validateOwnership(owner, requester, "Post", postId);
 
         postEntity.updateTitle(title);
         postEntity.updateBody(body);
 
-        return Post.fromEntity(postEntity);
+        Post modifiedPost = Post.fromEntity(postEntity);
+
+        log.debug("Modified Post: {}", modifiedPost);
+
+        return modifiedPost;
     }
 
 
