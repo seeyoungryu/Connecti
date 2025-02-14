@@ -56,13 +56,24 @@ public class PostController {
     포스트 수정
      */
     @PutMapping("/{postId}")
-    public ResponseEntity<ApiResponse<PostResponse>> modifyPost(@PathVariable Long postId, @RequestBody PostModifyRequest request, Authentication authentication) {
+    public ResponseEntity<ApiResponse<PostResponse>> modifyPost(@PathVariable Long postId,
+                                                                @RequestBody PostModifyRequest request,
+                                                                Authentication authentication) {
 
         if (authentication == null || authentication.getName() == null) {
             throw new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION);
         }
 
         Post modifiedPost = postService.modifyPost(request.getTitle(), request.getBody(), authentication.getName(), postId);
+
+        log.debug("modifiedPost: {}", modifiedPost); //반환값 확인
+
+
+        //Null 체크 추가  -> 로깅 확인 가능
+        if (modifiedPost == null) {
+            log.error("modifyPost() returned null for postId: {}", postId);
+            throw new ConnectiApplicationException(ErrorCode.POST_NOT_FOUND);
+        }
 
         return ResponseEntity.ok(ApiResponse.success(PostResponse.fromPost(modifiedPost)));
     }

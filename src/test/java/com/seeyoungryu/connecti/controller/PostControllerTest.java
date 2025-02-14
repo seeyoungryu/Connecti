@@ -9,6 +9,8 @@ import com.seeyoungryu.connecti.controller.response.CommentResponse;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.Post;
+import com.seeyoungryu.connecti.model.entity.PostEntity;
+import com.seeyoungryu.connecti.model.entity.UserEntity;
 import com.seeyoungryu.connecti.service.CommentService;
 import com.seeyoungryu.connecti.service.PostLikeService;
 import com.seeyoungryu.connecti.service.PostService;
@@ -25,12 +27,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -70,17 +72,16 @@ public class PostControllerTest {
     포스트 작성
      */
     @Test
-    @WithMockUser(username = "testUser") // 인증된 유저 설정
+    @WithMockUser
     @DisplayName("포스트 작성 성공")
-    void createPost_Success() throws Exception {
+    void updatePost_Success() throws Exception {
 
-        // JWT 생성 (테스트용 토큰)
-        String validToken = jwtTokenUtils.generateToken("testUser", secretKey, 3600000L); // 만료 시간: 1시간
+        String title = "title";
+        String body = "body";
 
-        mockMvc.perform(post("/api/v1/posts")
+        mockMvc.perform(put("/api/v1/posts/1L")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + validToken) // Authorization 헤더 추가
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -103,18 +104,38 @@ public class PostControllerTest {
     포스트 수정
      */
     @Test
-    @WithMockUser
-    @DisplayName("포스트 작성 성공")
-    void updatePost_Success() throws Exception {
+    @WithMockUser(username = "testUser")
+    @DisplayName("포스트 수정 성공")
+    void modifyPost_Success() throws Exception {
+        // Given
+        String username = "testUser";
+        Long postId = 1L;
+        String newTitle = "Updated Title";
+        String newBody = "Updated Body";
 
-        String title = "title";
-        String body = "body";
+        PostModifyRequest request = new PostModifyRequest(newTitle, newBody);
 
-        mockMvc.perform(put("/api/v1/posts/1L")
+        // 수정될 PostEntity 객체 생성
+        PostEntity postEntity = new PostEntity(newTitle, newBody, new UserEntity());
+
+        // Post DTO 변환
+        Post modifiedPost = Post.fromEntity(postEntity);
+
+        // postService.modifyPost() 호출 시 반환값 설정
+//        when(postService.modifyPost(eq(newTitle), eq(newBody), eq(username), eq(postId)))
+//                .thenReturn(modifiedPost);
+        when(postService.modifyPost(eq(newTitle), eq(newBody), eq(username), eq(postId)))
+                .thenReturn(new Post(postId, newTitle, newBody, LocalDateTime.now(), LocalDateTime.now(), null)); // null 대신 유효한 Post 객체 반환
+
+
+        // When & Then
+        mockMvc.perform(put("/api/v1/posts/" + postId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
+                        .content(objectMapper.writeValueAsBytes(request)))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value(newTitle))
+                .andExpect(jsonPath("$.data.body").value(newBody));
     }
 
 
@@ -406,6 +427,8 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.content[0].content").value("댓글 내용 1"))
                 .andExpect(jsonPath("$.content[1].content").value("댓글 내용 2"));
     }
+
+
 }
 
 
