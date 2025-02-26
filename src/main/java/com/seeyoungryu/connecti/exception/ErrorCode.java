@@ -18,6 +18,7 @@ public enum ErrorCode {
     INVALID_COMMENT(HttpStatus.BAD_REQUEST, "Comment content cannot be empty."),
 
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error occurs"),
+    ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "Alarm not founded"),
     ;
 
     private HttpStatus status;

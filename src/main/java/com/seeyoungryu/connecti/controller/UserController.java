@@ -58,8 +58,15 @@ public class UserController {
     @GetMapping("/alarms")
     public ApiResponse<Page<AlarmEntity>> alarms(Pageable pageable, Authentication authentication) {
         String userName = authentication.getName();
-        Page<AlarmEntity> alarms = userService.alarmsList(userName, pageable);
+        Page<AlarmEntity> alarms = userService.getAlarms(userName, pageable);
         return ApiResponse.success(alarms);
+    }
+
+
+    @PatchMapping("/alarms/{alarmId}/read")
+    public ApiResponse<Void> markAlarmAsRead(@PathVariable Long alarmId, Authentication authentication) {
+        userService.markAlarmAsRead(alarmId, authentication.getName());
+        return ApiResponse.success(null);
     }
 
 

@@ -92,6 +92,23 @@ public class UserService implements UserDetailsService {
         return alarmEntityRepository.findAllByUser(user, pageable);
     }
 
+    @Transactional
+    public void markAlarmAsRead(Long alarmId, String userName) {
+        // 1. 알람 ID로 알람 조회
+        AlarmEntity alarm = alarmEntityRepository.findById(alarmId)
+                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.ALARM_NOT_FOUND));
+
+        // 2. 현재 로그인한 사용자와 알람 소유자 확인
+        if (!alarm.getUser().getUserName().equals(userName)) {
+            throw new ConnectiApplicationException(ErrorCode.INVALID_PERMISSION);
+        }
+
+        // 3. 알람을 읽음 처리
+        alarm.markAlarmAsRead();
+        alarmEntityRepository.save(alarm);  // 변경 사항을 DB에 반영
+    }
+
+
 }
 
 
