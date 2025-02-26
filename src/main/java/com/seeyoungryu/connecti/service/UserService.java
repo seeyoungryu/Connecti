@@ -84,11 +84,12 @@ public class UserService implements UserDetailsService {
         return jwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
     }
 
-    public Page<AlarmEntity> alarmsList(String userName, Pageable pageable) {
-        UserEntity userEntity = userEntityRepository.findByUserName(userName)
-                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not found", userName)));
+    @Transactional
+    public Page<AlarmEntity> getAlarms(String userName, Pageable pageable) {
+        UserEntity user = userEntityRepository.findByUserName(userName)
+                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND));
 
-        return alarmRepository.findAllByUser(userEntity, pageable);
+        return alarmEntityRepository.findAllByUser(user, pageable);
     }
 
 }
