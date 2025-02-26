@@ -6,8 +6,11 @@ import com.seeyoungryu.connecti.controller.response.ApiResponse;
 import com.seeyoungryu.connecti.controller.response.UserJoinResponse;
 import com.seeyoungryu.connecti.controller.response.UserLoginResponse;
 import com.seeyoungryu.connecti.model.User;
+import com.seeyoungryu.connecti.model.entity.AlarmEntity;
 import com.seeyoungryu.connecti.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,4 +53,14 @@ public class UserController {
 
         return ApiResponse.success(UserJoinResponse.fromUser(user));
     }
+
+
+    @GetMapping("/alarms")
+    public ApiResponse<Page<AlarmEntity>> alarms(Pageable pageable, Authentication authentication) {
+        String userName = authentication.getName();
+        Page<AlarmEntity> alarms = userService.alarmsList(userName, pageable);
+        return ApiResponse.success(alarms);
+    }
+
+
 }

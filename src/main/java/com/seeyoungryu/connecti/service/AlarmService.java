@@ -5,7 +5,7 @@ import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.entity.AlarmEntity;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
-import com.seeyoungryu.connecti.repository.AlarmRepository;
+import com.seeyoungryu.connecti.repository.AlarmEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AlarmService {
 
-    private final AlarmRepository alarmRepository;
+    private final AlarmEntityRepository alarmRepository;
     private final UserEntityRepository userEntityRepository;
 
     // 알람 생성 (게시글 좋아요, 댓글 작성 시)

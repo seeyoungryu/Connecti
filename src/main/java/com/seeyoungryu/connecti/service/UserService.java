@@ -3,13 +3,16 @@ package com.seeyoungryu.connecti.service;
 import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.User;
+import com.seeyoungryu.connecti.model.entity.AlarmEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
+import com.seeyoungryu.connecti.repository.AlarmEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import com.seeyoungryu.connecti.service.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService implements UserDetailsService {
 
     private final UserEntityRepository userEntityRepository;
+
+    private final AlarmEntityRepository alarmEntityRepository;
 
     private final JwtTokenUtils jwtTokenUtils;
 
@@ -67,14 +72,25 @@ public class UserService implements UserDetailsService {
      */
     @Transactional
     public String login(String userName, String password) {
-        UserDetails userDetails = loadUserByUsername(userName);
-        //Spring Security가 사용자를 '인증'하므로 loadUserByUsername 호출 -> 사용자의 `username`을 기반으로 `User` 정보를 조회하여 반환함.
+//        UserDetails userDetails = loadUserByUsername(userName);
+//        //Spring Security가 사용자를 '인증'하므로 loadUserByUsername 호출 -> 사용자의 `username`을 기반으로 `User` 정보를 조회하여 반환함.
+//회원가입 여부 체크
+        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not found", userName)));
 
-        if (!encoder.matches(password, userDetails.getPassword())) {
+        //비밀번호 체크
+        if (!encoder.matches(password, userEntity.getPassword())) {
             throw new ConnectiApplicationException(ErrorCode.INVALID_PASSWORD);
         }
         return jwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
     }
+
+    public Page<AlarmEntity> alarmsList(String userName, Pageable pageable) {
+        UserEntity userEntity = userEntityRepository.findByUserName(userName)
+                .orElseThrow(() -> new ConnectiApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not found", userName)));
+
+        return alarmRepository.findAllByUser(userEntity, pageable);
+    }
+
 }
 
 

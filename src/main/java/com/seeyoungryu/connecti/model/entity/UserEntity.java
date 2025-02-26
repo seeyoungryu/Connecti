@@ -49,6 +49,16 @@ public class UserEntity {
     @Column(name = "deleted_at")
     private Timestamp deletedAt;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AlarmEntity> alarms;
+
+    /*
+    알람(AlarmEntity)과 사용자(UserEntity) 간의 관계를 설정하여, 한 사용자가 여러 개의 알람을 가질 수 있도록 함.
+    cascade = CascadeType.ALL → 유저가 삭제되면 알람도 함께 삭제됨.
+    orphanRemoval = true → 특정 유저에서 알람이 제거되면 DB에서도 삭제됨.
+     */
+
+
     // comment ~ 생성자 추가
     public UserEntity(String userName, String password) {
         this.userName = userName;

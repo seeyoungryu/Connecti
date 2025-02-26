@@ -13,11 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -131,6 +133,35 @@ public class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().is(ErrorCode.INVALID_PASSWORD.getStatus().value()));
     }
+
+
+    /*
+    알람 기능
+     */
+    @Test
+    @WithMockUser //Given (준비)
+    @DisplayName("알람 기능 정상 동작")
+    void getAlarms_Success() throws Exception {
+        //mocking
+        when(userService.alarmsList(any(), any())).thenReturn(Page.empty());
+
+
+        mockMvc.perform(post("/api/v1/users/alrams") //given(준비) : mockMvc.perform(post(...))로 HTTP 요청을 생성 , when(실행) : 실제 /api/v1/users/alrams API를 호출.
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk()); //Then(검증) : API 응답 확인
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("알람 조회 실패 - 로그인하지 않은 유저")
+    void getAlarms_ErrorUnauthenticatedUser() throws Exception {
+        mockMvc.perform(post("/api/v1/users/alarms")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized()); // 401 Unauthorized 반환
+    }
+
 }
 
 

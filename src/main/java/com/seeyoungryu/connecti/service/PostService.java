@@ -7,7 +7,7 @@ import com.seeyoungryu.connecti.model.entity.AlarmEntity;
 import com.seeyoungryu.connecti.model.entity.CommentEntity;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
-import com.seeyoungryu.connecti.repository.AlarmRepository;
+import com.seeyoungryu.connecti.repository.AlarmEntityRepository;
 import com.seeyoungryu.connecti.repository.CommentEntityRepository;
 import com.seeyoungryu.connecti.repository.PostEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
@@ -26,7 +26,7 @@ public class PostService {
     private final PostEntityRepository postEntityRepository;
     private final UserEntityRepository userEntityRepository;
     private final CommentEntityRepository commentEntityRepository;
-    private final AlarmRepository alarmRepository;
+    private final AlarmEntityRepository alarmRepository;
 
     /**
      * 유저 이름으로 UserEntity 조회

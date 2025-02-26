@@ -5,7 +5,7 @@ import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.entity.AlarmEntity;
 import com.seeyoungryu.connecti.model.entity.PostEntity;
 import com.seeyoungryu.connecti.model.entity.UserEntity;
-import com.seeyoungryu.connecti.repository.AlarmRepository;
+import com.seeyoungryu.connecti.repository.AlarmEntityRepository;
 import com.seeyoungryu.connecti.repository.UserEntityRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +27,7 @@ public class AlarmServiceTest {
     private AlarmService alarmService;
 
     @MockBean
-    private AlarmRepository alarmRepository;
+    private AlarmEntityRepository alarmRepository;
 
     @MockBean
     private UserEntityRepository userEntityRepository;
