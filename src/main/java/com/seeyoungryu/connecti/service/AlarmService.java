@@ -27,7 +27,7 @@ public class AlarmService {
         alarmRepository.save(alarm);
     }
 
-    // 알람 목록 조회
+    // 특정 사용자의 알람 목록 조회 (페이징 적용)
     @Transactional
     public Page<AlarmEntity> getAlarms(String userName, Pageable pageable) {
         UserEntity user = userEntityRepository.findByUserName(userName)
@@ -36,14 +36,7 @@ public class AlarmService {
         return alarmRepository.findAllByUser(user, pageable);
     }
 
-
-    /*
-    alarmRepository.findById(alarmId) → ID로 알람을 찾음.
-찾은 알람이 현재 로그인한 사용자(userName)의 것인지 확인.
-만약 다른 사용자의 알람이면 예외 발생(INVALID_PERMISSION).
-alarm.markAsRead() 실행 → 알람을 읽음 처리.
-alarmRepository.save(alarm) → 변경 사항을 DB에 저장.
-     */
+    // 알람 읽음 처리
     @Transactional
     public void markAlarmAsRead(Long alarmId, String userName) {
         AlarmEntity alarm = alarmRepository.findById(alarmId)
@@ -54,14 +47,6 @@ alarmRepository.save(alarm) → 변경 사항을 DB에 저장.
         }
 
         alarm.markAlarmAsRead();
-        alarmRepository.save(alarm);  // 변경 사항을 DB에 반영
+        alarmRepository.save(alarm);
     }
-
-
 }
-
-
-/*
-알람 저장: createAlarm() → 게시글 좋아요/댓글 등록 시 실행
-알람 조회: getAlarms() → 특정 유저의 알람을 페이징하여 반환
- */

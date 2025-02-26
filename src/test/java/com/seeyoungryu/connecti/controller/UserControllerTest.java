@@ -7,6 +7,7 @@ import com.seeyoungryu.connecti.exception.ConnectiApplicationException;
 import com.seeyoungryu.connecti.exception.ErrorCode;
 import com.seeyoungryu.connecti.model.User;
 import com.seeyoungryu.connecti.model.entity.AlarmEntity;
+import com.seeyoungryu.connecti.service.AlarmService;
 import com.seeyoungryu.connecti.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ public class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private AlarmService alarmService;
 
     /*
     회원가입 테스트 (성공)
@@ -142,7 +146,7 @@ public class UserControllerTest {
         // Given
         Page<AlarmEntity> alarmPage = new PageImpl<>(List.of(new AlarmEntity()));
 
-        when(userService.alarmsList(any(), any())).thenReturn(alarmPage);
+        when(alarmService.getAlarms(any(), any())).thenReturn(alarmPage);
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/alarms")
@@ -158,7 +162,7 @@ public class UserControllerTest {
         // Given
         Page<AlarmEntity> emptyPage = Page.empty();
 
-        when(userService.alarmsList(any(), any())).thenReturn(emptyPage);
+        when(alarmService.getAlarms(any(), any())).thenReturn(emptyPage);
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/alarms")
