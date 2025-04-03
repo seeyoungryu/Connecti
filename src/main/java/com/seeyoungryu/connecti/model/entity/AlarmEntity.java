@@ -1,5 +1,8 @@
 package com.seeyoungryu.connecti.model.entity;
 
+import com.seeyoungryu.connecti.converter.AlarmArgsConverter;
+import com.seeyoungryu.connecti.model.AlarmArgs;
+import com.seeyoungryu.connecti.model.AlarmType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.SQLDelete;
@@ -18,9 +21,19 @@ public class AlarmEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //알람을 받은 사람(user)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
+
+    @Enumerated(EnumType.STRING)
+    private AlarmType alarmType;
+
+    // 알람에 대한 정보 저장 (ex. 좋아요 누른 사용자 ID, 대상 사용자 ID 등)
+    @Column(columnDefinition = "json") // DB에서 JSON 타입으로 선언 (MySQL, PostgreSQL 등)
+    @Convert(converter = AlarmArgsConverter.class)
+    //JSON 문자열로 DB에 저장하기 위해 @Convert 사용 -> AlarmArgs는 내가 직접 JSON 문자열로 바꾸고 다시 객체로 만들겠다 명시하는 것임.
+    private AlarmArgs args;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
