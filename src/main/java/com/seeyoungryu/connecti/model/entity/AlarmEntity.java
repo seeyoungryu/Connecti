@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "alarms")
 @SQLDelete(sql = "UPDATE alarms SET deleted_at = NOW() WHERE id = ?")  // 삭제 요청 시 deleted_at 업데이트
 @Where(clause = "deleted_at IS NULL")  // deleted_at이 NULL인 데이터만 조회되도록 설정
+@EntityListeners(AuditingEntityListener.class) // createdAt 자동 처리 위한 Auditing 설정
 public class AlarmEntity {
 
     @Id
@@ -39,6 +42,7 @@ public class AlarmEntity {
     @JoinColumn(name = "post_id", nullable = false)
     private PostEntity post;
 
+    @CreatedDate
     private LocalDateTime createdAt;
 
     private LocalDateTime deletedAt;  // Soft Delete를 위한 필드 추가
@@ -49,14 +53,33 @@ public class AlarmEntity {
 
     private boolean isRead = false;  // 기본값 false (안 읽음)
 
-    public static AlarmEntity of(UserEntity user, PostEntity post) {
+    public static AlarmEntity of(UserEntity user, PostEntity post, AlarmType alarmType, AlarmArgs args) {   //of() 팩토리 메서드로 객체 생성
         AlarmEntity alarm = new AlarmEntity();
-        alarm.user = user;
-        alarm.post = post;
-        alarm.createdAt = LocalDateTime.now();
+        alarm.setUser(user);
+        alarm.setPost(post);
+        alarm.setAlarmType(alarmType);
+        alarm.setArgs(args);
         return alarm;
     }
 
+    // setter는 of() 메서드에서만 사용됨 (외부에서 직접 접근 막기 위함)
+    private void setUser(UserEntity user) {
+        this.user = user;
+    }
+
+    private void setPost(PostEntity post) {
+        this.post = post;
+    }
+
+    private void setAlarmType(AlarmType alarmType) {
+        this.alarmType = alarmType;
+    }
+
+    private void setArgs(AlarmArgs args) {
+        this.args = args;
+    }
+
+    //isRead 상태 관리용 메서드 → 명확한 도메인 로직
     public void markAlarmAsRead() {
         this.isRead = true;
     }
@@ -68,7 +91,6 @@ public class AlarmEntity {
 of() 메서드로 객체 생성 편리화
  */
 
-
 /*
 deletedAt 필드를 추가하여 실제 삭제가 아닌 논리적 삭제를 적용.
 @SQLDelete(sql = "UPDATE alarms SET deleted_at = NOW() WHERE id = ?")
@@ -79,5 +101,4 @@ deleteById() 실행 시, 실제 삭제가 아닌 deleted_at 값을 업데이트�
 적용 후 동작
 : 사용자가 알람을 삭제하면 deleted_at이 현재 시간으로 설정됨.
 이후 조회할 때 deleted_at이 NULL인 알람만 반환되므로, 삭제된 알람은 조회되지 않음.
-
  */
